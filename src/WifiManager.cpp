@@ -141,7 +141,7 @@ wl_status_t WifiManager::connectMultiWiFi() {
   }
 
   int i = 0;
-  while ((i++ < 60) && (status != WL_CONNECTED)) {
+  while ((i++ < 100) && (status != WL_CONNECTED)) {
     delay(100);
     status = WiFi.status();
     if (status == WL_CONNECTED) {
@@ -154,10 +154,10 @@ wl_status_t WifiManager::connectMultiWiFi() {
     m_logger.log(
       yal::Level::INFO,
       "Wifi connected:\n"
-      "\tSSID: %\n"
-      "\tRSSI=%\n"
-      "\tChannel: %\n"
-      "\tIP address: %",
+      "SSID: %\n"
+      "RSSI=%\n"
+      "Channel: %\n"
+      "IP address: %",
       WiFi.SSID().c_str(),
       static_cast<int>(WiFi.RSSI()),
       WiFi.channel(),

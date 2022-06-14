@@ -18,19 +18,18 @@ namespace esp_gui {
 
 enum class ElementType { STRING, STRING_PASSWORD, INT, DOUBLE };
 
-template<typename T>
 class Element {
  public:
-  Element(ElementType type, String label, T& value) :
-      m_type(type), m_label(std::move(label)), m_value(value) {
+  Element(ElementType type, String label, String configName) :
+      m_type(type), m_label(std::move(label)), m_configName(std::move(configName)) {
   }
 
   [[nodiscard]] const String& label() const {
     return m_label;
   }
 
-  [[nodiscard]] const T& value() const {
-    return m_value;
+  [[nodiscard]] const String& configName() const {
+    return m_configName;
   }
 
   [[nodiscard]] const ElementType& type() const {
@@ -40,12 +39,13 @@ class Element {
  private:
   const ElementType m_type;
   const String m_label;
-  const T& m_value;
+  const String m_configName;
+
 };
 
 class Container {
  public:
-  Container(String title, std::vector<Element<std::any>>&& elements) :
+  Container(String title, std::vector<Element>&& elements) :
       m_title(std::move(title)), m_elements(elements) {
   }
 
@@ -53,13 +53,13 @@ class Container {
     return m_title;
   }
 
-  const std::vector<Element<std::any>>& elements() {
+  const std::vector<Element>& elements() {
     return m_elements;
   }
 
  private:
   const String m_title;
-  const std::vector<Element<std::any>> m_elements;
+  const std::vector<Element> m_elements;
 };
 
 class WebServer {
@@ -93,7 +93,7 @@ class WebServer {
 
   std::vector<Container> m_container;
   size_t m_containerDataUsed = 0U;
-  std::array<char, 5120> m_containerData;
+  std::array<char, 2048> m_containerData;
 
   static constexpr const char* PROGMEM CONTENT_TYPE_HTML = "text/html";
   enum HtmlReturnCode {

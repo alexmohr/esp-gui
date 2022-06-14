@@ -10,25 +10,38 @@
 
 namespace esp_gui {
 
-void Configuration::setup() {
-  if (!LittleFS.begin()) {
-    m_logger.log(yal::Level::ERROR, "failed to init littlefs");
-    return;
+struct FileSystemHandle {
+  FileSystemHandle() {
+    if (!LittleFS.begin()) {
+      m_logger.log(yal::Level::ERROR, "failed to init littlefs");
+      return;
+    }
   }
-  m_logger.log(yal::Level::DEBUG, "Loading config");
-  auto file = LittleFS.open(m_configFile, "r");
-  if (!file) {
-    m_logger.log(yal::Level::ERROR, "Failed to read config from FS");
-    return;
+  ~FileSystemHandle() {
+    LittleFS.end();
   }
+ private:
+  yal::Logger m_logger = yal::Logger("CONFIG");
+};
 
-  auto readSize = file.read(data.data(), data.size());
-  file.close();
-  m_logger.log(yal::Level::DEBUG, "Read % bytes from FS, data: ", readSize, data.data());
-  LittleFS.end();
+void Configuration::setup() {
+  {
+    FileSystemHandle fsHandle;
+    m_logger.log(yal::Level::DEBUG, "Loading config");
+    auto file = LittleFS.open(m_configFile, "r");
+    if (!file) {
+      m_logger.log(yal::Level::ERROR, "Failed to read config from FS");
+      return;
+    }
+
+    auto readSize = file.read(m_jsonData.data(), m_jsonData.size());
+    file.close();
+    m_logger.log(
+      yal::Level::DEBUG, "Read % bytes from FS, data: ", readSize, m_jsonData.data());
+  }
 
   // Deserialize the JSON document
-  DeserializationError error = deserializeJson(m_config, data);
+  DeserializationError error = deserializeJson(m_config, m_jsonData);
   if (error == DeserializationError::Ok) {
     m_logger.log(yal::Level::INFO, "Successfully loaded config");
     logConfig();
@@ -39,7 +52,7 @@ void Configuration::setup() {
 
 void Configuration::store() {
   m_logger.log(yal::Level::DEBUG, "Storing config");
-
+  FileSystemHandle fsHandle;
   File file = LittleFS.open(m_configFile, "w");
   if (!file) {
     m_logger.log(yal::Level::ERROR, "Failed to open config for writing");
@@ -60,14 +73,22 @@ void Configuration::store() {
     return;
   }
 
+  m_logger.log(yal::Level::INFO, "Config RAM usage % of % bytes (%)",
+               m_config.memoryUsage(),
+               m_jsonData.size(),
+               (static_cast<float>( m_config.memoryUsage()) / static_cast<float>(m_jsonData.size())) * 100.0F);
+
   m_logger.log(
     yal::Level::INFO, "Successfully updated config", writtenBytes, cfgStr.size());
 }
 
-void Configuration::reset() {
+void Configuration::reset(bool persist) {
   m_logger.log(yal::Level::WARNING, "Resetting configuration!");
-  m_config = DynamicJsonDocument(data.size());
-  store();
+  m_config = DynamicJsonDocument(m_jsonData.size());
+  if (persist) {
+    store();
+  }
+
 }
 
 }  // namespace esp_gui
