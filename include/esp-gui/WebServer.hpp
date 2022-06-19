@@ -40,7 +40,6 @@ class Element {
   const ElementType m_type;
   const String m_label;
   const String m_configName;
-
 };
 
 class Container {
@@ -49,11 +48,11 @@ class Container {
       m_title(std::move(title)), m_elements(elements) {
   }
 
-  const String& title() {
+  [[nodiscard]] const String& title() const {
     return m_title;
   }
 
-  const std::vector<Element>& elements() {
+  [[nodiscard]] const std::vector<Element>& elements() const {
     return m_elements;
   }
 
@@ -81,7 +80,7 @@ class WebServer {
   }
 
   void addContainer(Container&& container);
-  void containerSetupDone();
+  [[nodiscard]] bool containerSetupDone();
 
  private:
   AsyncWebServer m_asyncWebServer;
@@ -93,7 +92,9 @@ class WebServer {
 
   std::vector<Container> m_container;
   size_t m_containerDataUsed = 0U;
-  std::array<char, 2048> m_containerData;
+  // std::array<char, 2048> m_containerData;
+
+  const String m_htmlIndex = "/index.html";
 
   static constexpr const char* PROGMEM CONTENT_TYPE_HTML = "text/html";
   enum HtmlReturnCode {
@@ -103,11 +104,28 @@ class WebServer {
     HTTP_NOT_FOUND = 404
   };
 
-  void addToContainerData(const char* const data);
+  // void addToContainerData(const char* const data);
   void rootHandleGet(AsyncWebServerRequest* request);
   void rootHandlePost(AsyncWebServerRequest* request);
   void eraseConfig(AsyncWebServerRequest* request);
-  String templateCallback(const String& templateString);
+  [[nodiscard]] String templateCallback(const String& templateString);
+
+  enum class WriteAndCheckResult {
+    SUCCESS,
+    CHECKSUM_MISSMATCH,
+    WRITE_FAILED,
+  };
+
+  [[nodiscard]] WriteAndCheckResult checkAndWriteHTML(bool writeFS);
+  [[nodiscard]] bool fileSystemAndDataChunksEqual(
+    unsigned int offset,
+    const uint8_t* data,
+    int size) const;
+  [[nodiscard]] bool fileSystemWriteChunk(
+    unsigned int offset,
+    const uint8_t* data,
+    unsigned int size,
+    bool clearFile) const;
 
   size_t chunkedResponseCopy(
     size_t index,
@@ -116,11 +134,11 @@ class WebServer {
     const char* const source,
     size_t sourceLength);
 
-  bool isCaptivePortal(AsyncWebServerRequest* pRequest);
+  [[nodiscard]] bool isCaptivePortal(AsyncWebServerRequest* pRequest);
   void onNotFound(AsyncWebServerRequest* request);
 
   void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
-  static bool isIp(const String& str);
+  [[nodiscard]] static bool isIp(const String& str);
 };
 }  // namespace esp_gui
 
