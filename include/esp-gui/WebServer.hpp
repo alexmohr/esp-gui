@@ -16,12 +16,15 @@
 
 namespace esp_gui {
 
-enum class ElementType { STRING, STRING_PASSWORD, INT, DOUBLE };
+enum class ElementType { STRING, PASSWORD, INT, DOUBLE };
 
 class Element {
  public:
   Element(ElementType type, String label, String configName, bool isReadOnly = false) :
-      m_type(type), m_label(std::move(label)), m_configName(std::move(configName)), m_readOnly(isReadOnly) {
+      m_type(type),
+      m_label(std::move(label)),
+      m_configName(std::move(configName)),
+      m_readOnly(isReadOnly) {
   }
 
   [[nodiscard]] const String& label() const {
@@ -70,6 +73,7 @@ class WebServer {
  public:
   WebServer(int port, const char* const hostname, Configuration& config) :
       m_asyncWebServer(AsyncWebServer(port)), m_hostname("default"), m_config(config) {
+    addWifiContainers();
   }
 
   WebServer(const WebServer&) = delete;
@@ -85,7 +89,6 @@ class WebServer {
   }
 
   void addContainer(Container&& container);
-  [[nodiscard]] bool containerSetupDone();
 
  private:
   AsyncWebServer m_asyncWebServer;
@@ -97,6 +100,10 @@ class WebServer {
 
   std::vector<Container> m_container;
   size_t m_containerDataUsed = 0U;
+
+  String m_cfgWifiSsid = "wifi_ssid";
+  String m_cfgWifiPassword = "wifi_password";
+  String m_cfgWifiHostname = "wifi_hostname";
 
   const String m_htmlIndex = "/index.html";
 
@@ -112,7 +119,13 @@ class WebServer {
   void rootHandleGet(AsyncWebServerRequest* request);
   void rootHandlePost(AsyncWebServerRequest* request);
   void updateHandlePost(AsyncWebServerRequest* request);
-  void updateHandleUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+  void updateHandleUpload(
+    AsyncWebServerRequest* request,
+    const String& filename,
+    size_t index,
+    uint8_t* data,
+    size_t len,
+    bool final);
   void eraseConfig(AsyncWebServerRequest* request);
   [[nodiscard]] String templateCallback(const String& templateString);
 
@@ -122,6 +135,7 @@ class WebServer {
     WRITE_FAILED,
   };
 
+  [[nodiscard]] bool containerSetupDone();
   [[nodiscard]] WriteAndCheckResult checkAndWriteHTML(bool writeFS);
   [[nodiscard]] bool fileSystemAndDataChunksEqual(
     unsigned int offset,
@@ -145,6 +159,7 @@ class WebServer {
 
   void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
   [[nodiscard]] static bool isIp(const String& str);
+  void addWifiContainers();
 };
 }  // namespace esp_gui
 
