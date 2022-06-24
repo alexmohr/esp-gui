@@ -16,43 +16,248 @@
 
 namespace esp_gui {
 
-enum class ElementType { STRING, PASSWORD, INT, DOUBLE };
+enum class ElementType {
+  STRING,
+  PASSWORD,
+  INT,
+  FLOAT,
 
-class Element {
+};
+
+class ElementBase {
  public:
-  Element(ElementType type, String label, String configName, bool isReadOnly = false) :
-      m_type(type),
-      m_label(std::move(label)),
-      m_configName(std::move(configName)),
-      m_readOnly(isReadOnly) {
-  }
-
-  [[nodiscard]] const String& label() const {
-    return m_label;
-  }
-
-  [[nodiscard]] const String& configName() const {
-    return m_configName;
+  ElementBase(ElementType type, String id, String label) :
+      m_type(type), m_id(std::move(id)), m_label(std::move(label)) {
   }
 
   [[nodiscard]] const ElementType& type() const {
     return m_type;
   }
 
-  [[nodiscard]] bool readOnly() const {
-    return m_readOnly;
+  [[nodiscard]] const String& id() const {
+    return m_id;
+  }
+
+  [[nodiscard]] const String& label() const {
+    return m_label;
   }
 
  private:
   const ElementType m_type;
+  const String m_id;
   const String m_label;
-  const String m_configName;
-  const bool m_readOnly;
 };
+
+template<typename T>
+class Element : public ElementBase {
+ public:
+
+  using GetValueFunc = std::function<T()>;
+  using SetValueFunc = std::function<void(const T&)>;
+
+  [[nodiscard]] bool readOnly() const {
+    return m_readOnly;
+  }
+
+  [[nodiscard]] const T value() const {
+    return m_getValue();
+  }
+
+  void setValue(const T& value) {
+    m_setValue(value);
+  }
+
+ protected:
+  Element(
+    ElementType type,
+    String idVal,
+    String label,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        type,
+        std::move(idVal),
+        std::move(label),
+        std::move([this]() {
+
+          return m_config->value<T>(id());
+        }),
+        std::move([this](const T& value) { m_config->setValue(id(), value); }),
+        config,
+        isReadOnly) {
+  }
+
+  Element(
+    ElementType type,
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    bool isReadOnly = false) :
+      Element(
+        type,
+        std::move(id),
+        std::move(label),
+        std::move(getValueFunc),
+        std::move(setValueFunc),
+        "",
+        nullptr,
+        isReadOnly) {
+  }
+
+  Element(
+    ElementType type,
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    Configuration* config,
+    bool isReadOnly = false) :
+      ElementBase(type, std::move(id), std::move(label)),
+      m_getValue(std::move(getValueFunc)),
+      m_setValue(std::move(setValueFunc)),
+      m_readOnly(isReadOnly),
+      m_config(config) {
+  }
+
+ private:
+
+  yal::Logger m_logger = yal::Logger("ELEMENT");
+
+  GetValueFunc m_getValue;
+  SetValueFunc m_setValue;
+
+  const bool m_readOnly;
+  Configuration* m_config;
+};
+
+class StringElement : public Element<String> {
+ public:
+  StringElement(String id, String label, Configuration* config, bool isReadOnly = false) :
+      Element(ElementType::STRING, std::move(id), std::move(label), config, isReadOnly) {
+  }
+
+  StringElement(
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        ElementType::STRING,
+        std::move(id),
+        std::move(label),
+        std::move(getValueFunc),
+        std::move(setValueFunc),
+        config,
+        isReadOnly) {
+  }
+};
+
+class PasswordElement : public Element<String> {
+ public:
+  PasswordElement(
+    String id,
+    String label,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        ElementType::PASSWORD,
+        std::move(id),
+        std::move(label),
+        config,
+        isReadOnly) {
+  }
+
+  PasswordElement(
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        ElementType::PASSWORD,
+        std::move(id),
+        std::move(label),
+        std::move(getValueFunc),
+        std::move(setValueFunc),
+        config,
+        isReadOnly) {
+  }
+};
+
+class FloatElement : public Element<float> {
+ public:
+  FloatElement(String id, String label, Configuration* config, bool isReadOnly = false) :
+      Element(ElementType::FLOAT, std::move(id), std::move(label), config, isReadOnly) {
+  }
+
+  FloatElement(
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        ElementType::FLOAT,
+        std::move(id),
+        std::move(label),
+        std::move(getValueFunc),
+        std::move(setValueFunc),
+        config,
+        isReadOnly) {
+  }
+};
+
+class IntElement : public Element<int> {
+ public:
+  IntElement(String id, String label, Configuration* config, bool isReadOnly = false) :
+      Element(ElementType::INT, std::move(id), std::move(label), config, isReadOnly) {
+  }
+
+  IntElement(
+    String id,
+    String label,
+    GetValueFunc&& getValueFunc,
+    SetValueFunc&& setValueFunc,
+    Configuration* config,
+    bool isReadOnly = false) :
+      Element(
+        ElementType::INT,
+        std::move(id),
+        std::move(label),
+        std::move(getValueFunc),
+        std::move(setValueFunc),
+        config,
+        isReadOnly) {
+  }
+};
+
+//
+// using ListElementGetOptionsCallback = std::function<std::vector<String>()>;
+// class ListInput : public Element {
+//  ListElement(
+//    String label,
+//    String configName,
+//    ListElementGetOptionsCallback getOptionsCallback,
+//    bool isReadOnly = false) :
+//      m_getOptionsCallback(getOptionsCallback),
+//      Element(
+//        ElementType::STRING_LIST,
+//        std::move(label),
+//        std::move(configName),
+//        std::move(isReadOnly)) {
+//  }
+//
+// private:
+//};
 
 class Container {
  public:
-  Container(String title, std::vector<Element>&& elements) :
+  Container(String title, std::vector<ElementBase>&& elements) :
       m_title(std::move(title)), m_elements(elements) {
   }
 
@@ -60,13 +265,13 @@ class Container {
     return m_title;
   }
 
-  [[nodiscard]] const std::vector<Element>& elements() const {
+  [[nodiscard]] const std::vector<ElementBase>& elements() const {
     return m_elements;
   }
 
  private:
   const String m_title;
-  const std::vector<Element> m_elements;
+  const std::vector<ElementBase> m_elements;
 };
 
 class WebServer {
@@ -91,30 +296,6 @@ class WebServer {
   void addContainer(Container&& container);
 
  private:
-  AsyncWebServer m_asyncWebServer;
-
-  String m_hostname;
-  std::vector<String> m_accessPointList;
-  yal::Logger m_logger = yal::Logger("WEB");
-  Configuration& m_config;
-
-  std::vector<Container> m_container;
-  size_t m_containerDataUsed = 0U;
-
-  String m_cfgWifiSsid = "wifi_ssid";
-  String m_cfgWifiPassword = "wifi_password";
-  String m_cfgWifiHostname = "wifi_hostname";
-
-  const String m_htmlIndex = "/index.html";
-
-  static constexpr const char* PROGMEM CONTENT_TYPE_HTML = "text/html";
-  enum HtmlReturnCode {
-    HTTP_OK = 200,
-    HTTP_FOUND = 302,
-    HTTP_DENIED = 403,
-    HTTP_NOT_FOUND = 404
-  };
-
   // void addToContainerData(const char* const data);
   void rootHandleGet(AsyncWebServerRequest* request);
   void rootHandlePost(AsyncWebServerRequest* request);
@@ -147,19 +328,35 @@ class WebServer {
     unsigned int size,
     bool clearFile) const;
 
-  size_t chunkedResponseCopy(
-    size_t index,
-    size_t maxLen,
-    uint8_t* dst,
-    const char* const source,
-    size_t sourceLength);
-
   [[nodiscard]] bool isCaptivePortal(AsyncWebServerRequest* pRequest);
   void onNotFound(AsyncWebServerRequest* request);
 
   void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
   [[nodiscard]] static bool isIp(const String& str);
   void addWifiContainers();
+
+  AsyncWebServer m_asyncWebServer;
+
+  String m_hostname;
+  std::vector<String> m_accessPointList;
+  yal::Logger m_logger = yal::Logger("WEB");
+  Configuration& m_config;
+
+  std::vector<Container> m_container;
+
+  const String m_cfgWifiSsid = "wifi_ssid";
+  const String m_cfgWifiPassword = "wifi_password";
+  const String m_cfgWifiHostname = "wifi_hostname";
+
+  const String m_htmlIndex = "/index.html";
+
+  static constexpr const char* PROGMEM CONTENT_TYPE_HTML = "text/html";
+  enum HtmlReturnCode {
+    HTTP_OK = 200,
+    HTTP_FOUND = 302,
+    HTTP_DENIED = 403,
+    HTTP_NOT_FOUND = 404
+  };
 };
 }  // namespace esp_gui
 

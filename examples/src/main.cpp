@@ -29,16 +29,20 @@ void setup() {
   m_config.setValue(m_powerFoobar, "foobar");
   m_config.setValue(m_powerUsage, 42);
 
-  std::vector<esp_gui::Element> elements;
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::INT, String("Power Usage"), m_powerUsage));
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::STRING, String("Foobar"), m_powerFoobar));
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::INT, String("Config Int"), m_myConfig));
-  esp_gui::Container powerUsage("Power usage", std::move(elements));
+  std::vector<esp_gui::ElementBase> elements;
 
-  m_server.addContainer(std::move(powerUsage));
+  elements.emplace_back(esp_gui::StringElement(String("Power Usage"), m_powerUsage, &m_config));
+
+
+//  elements.emplace_back(
+//    esp_gui::Element(esp_gui::ElementType::INT, String("Power Usage"), m_powerUsage));
+//  elements.emplace_back(
+//    esp_gui::Element(esp_gui::ElementType::STRING, String("Foobar"), m_powerFoobar));
+//  elements.emplace_back(
+//    esp_gui::Element(esp_gui::ElementType::INT, String("Config Int"), m_myConfig));
+ // esp_gui::Container powerUsage("Power usage", std::move(elements));
+
+  //.addContainer(std::move(powerUsage));
   esp_gui::WifiManager wifiMgr(m_config, m_server);
   wifiMgr.setup(false);
 

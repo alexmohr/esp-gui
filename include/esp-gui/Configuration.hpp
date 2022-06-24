@@ -30,7 +30,7 @@ class Configuration {
 
   template<typename T>
   T value(const String& key) {
-    m_logger.log(yal::Level::DEBUG, "Retrieving configuration key %", key.c_str());
+    //m_logger.log(yal::Level::DEBUG, "Retrieving configuration key %", key.c_str());
     return m_config[key];
   }
 

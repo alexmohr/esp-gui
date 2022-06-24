@@ -144,11 +144,10 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
     ss << containerClass;
 
     for (const auto& element : container.elements()) {
-      const auto& strId = element.configName();
-
       // todo catch std::any cast errors
       // todo support lists
-      String elementValue = "%" + element.configName() + "%";
+      const auto& id = element.id();
+      String elementValue = "%" + id + "%";
       String elementHTMLType;
       switch (element.type()) {
         case ElementType::STRING:
@@ -158,17 +157,37 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
           elementHTMLType = "password";
           break;
         case ElementType::INT:
-        case ElementType::DOUBLE:
+        case ElementType::FLOAT:
           elementHTMLType = "number";
           break;
+          // todo impl lists
+          //        case ElementType::STRING_LIST:
+          //          // clang-format off
+          //          const auto labelAndSelect =
+          //            "<label for=\"" + id + "\">" + element.label() + "</label>"
+          //            "<select id=\"" + id
+          //              + R"(" class="inputLarge")"
+          //              + "name=\"" + id + "\" "
+          //              + ">"
+          //              + "%" + element.configName() + m_cfgListSuffix +  "%"
+          //            "</select>"
+          //            "<br/>";
+          //          // clang-format on
+          //          ss << labelAndSelect.c_str();
+          //          continue;
       }
 
-      const auto labelAndInput = "<label for=\"" + strId + "\">" + element.label() +
-                                 "</label>"
-                                 "<input id=\"" +
-                                 strId + R"(" class="inputLarge")" + "name=\"" + strId +
-                                 +"\" value=\"" + elementValue + "\" " + "type=\"" +
-                                 elementHTMLType + "\"</><br/>";
+      // clang-format off
+      const auto labelAndInput =
+        "<label for=\"" + id + "\">" + element.label() + "</label>"
+        "<input id=\"" + id
+          + R"(" class="inputLarge")"
+          + "name=\"" + id + "\" "
+          + "value=\"" + elementValue + "\" "
+          + "type=\"" + elementHTMLType + "\" "
+          + "</>"
+      "<br/>";
+      // clang-format on
       ss << labelAndInput.c_str();
     }
 
@@ -304,30 +323,44 @@ void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
     std::bind(&WebServer::templateCallback, this, std::placeholders::_1));
 }
 
-size_t WebServer::chunkedResponseCopy(
-  size_t index,
-  size_t maxLen,
-  uint8_t* dst,
-  const char* const source,
-  size_t sourceLength) {
-  const auto idxBytesLeft = sourceLength - index;
-  auto bytesCopied = std::min(maxLen, idxBytesLeft);
-  if (idxBytesLeft == 0) {
-    return 0;
-  }
-  memcpy(dst, source + index, bytesCopied);
-
-  return bytesCopied;
-}
-
 String WebServer::templateCallback(const String& templateString) {
-  auto value = m_config.value<String>(templateString);
-  m_logger.log(
-    yal::Level::DEBUG,
-    "Replacing template string '%' with %",
-    templateString.c_str(),
-    value.c_str());
-  return value;
+  for (const auto& container : m_container) {
+    for (const auto& element : container.elements()) {
+      if (element.id() != templateString) {
+        continue;
+      }
+
+      const StringElement* se = nullptr;
+      const PasswordElement* pe = nullptr;
+      const IntElement* ie = nullptr;
+      const FloatElement* fe = nullptr;
+
+      // in here be dragon and strong typed language nightmare,
+      // lets throw types around yay
+      switch (element.type()) {
+        case ElementType::STRING:
+          se = reinterpret_cast<const StringElement*>(&element);
+          if (se) return se->value();
+          break;
+        case ElementType::PASSWORD:
+          pe = reinterpret_cast<const PasswordElement*>(&element);
+          if (pe) return pe->value();
+          break;
+        case ElementType::INT:
+          ie = reinterpret_cast<const IntElement*>(&element);
+          if (ie) return String(ie->value());
+          break;
+        case ElementType::FLOAT:
+          fe = reinterpret_cast<const FloatElement*>(&element);
+          if (fe) return String(fe->value());
+          break;
+      }
+
+      m_logger.log(yal::Level::ERROR, "Failed to cast element to corresponding class");
+      break;
+    }
+  }
+  return "ERROR";
 }
 
 void WebServer::rootHandlePost(AsyncWebServerRequest* const request) {
@@ -453,16 +486,18 @@ bool WebServer::isIp(const String& str) {
 }
 
 void WebServer::addWifiContainers() {
-  std::vector<esp_gui::Element> elements;
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::STRING, String("SSID"), m_cfgWifiSsid));
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::PASSWORD, String("Password"), m_cfgWifiPassword));
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::STRING, String("Hostname"), m_cfgWifiHostname));
-  esp_gui::Container wifiSettings("WIFI Settings", std::move(elements));
+  std::vector<esp_gui::ElementBase> elements;
+  elements.emplace_back(esp_gui::StringElement(
+    m_cfgWifiSsid, "SSID", &m_config));
+  elements.emplace_back(esp_gui::PasswordElement(
+    m_cfgWifiPassword, "Password", &m_config));
+  elements.emplace_back(StringElement(
+    m_cfgWifiHostname, "Hostname", &m_config));
 
+  esp_gui::Container wifiSettings("WIFI Settings", std::move(elements));
   addContainer(std::move(wifiSettings));
+
+
 }
 
 }  // namespace esp_gui

@@ -20,9 +20,9 @@
     <list default="true" id="c76e7dda-a9eb-4718-a489-fbe6aa5ca848" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../include/esp-gui/Configuration.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/Configuration.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/WebServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WebServer.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../src/html/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -105,7 +105,8 @@
       <workItem from="1655225913680" duration="8213000" />
       <workItem from="1655576053965" duration="14784000" />
       <workItem from="1655638857257" duration="11767000" />
-      <workItem from="1656001982962" duration="2081000" />
+      <workItem from="1656001982962" duration="2935000" />
+      <workItem from="1656086153533" duration="13628000" />
     </task>
     <servers />
   </component>
