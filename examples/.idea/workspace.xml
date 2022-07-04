@@ -20,8 +20,10 @@
     <list default="true" id="c76e7dda-a9eb-4718-a489-fbe6aa5ca848" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../include/esp-gui/WifiManager.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WifiManager.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/WebServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WebServer.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/WifiManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WifiManager.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../src/html/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +45,9 @@
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
+  </component>
+  <component name="OCResolveContextSettings">
+    <option name="configuration" value="1-nodemcuv2-Z_DUMMY_TARGET" />
   </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
@@ -70,11 +75,6 @@
   }
 }</component>
   <component name="RunManager" selected="PlatformIO.PlatformIO Upload">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="Debug" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="examples" TARGET_NAME="Debug" CONFIG_NAME="Debug">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -116,6 +116,10 @@
       <workItem from="1656849129616" duration="494000" />
       <workItem from="1656849931459" duration="2000" />
       <workItem from="1656851212947" duration="14934000" />
+      <workItem from="1656941791731" duration="312000" />
+      <workItem from="1656942355949" duration="3528000" />
+      <workItem from="1656951463506" duration="1421000" />
+      <workItem from="1656956571297" duration="1174000" />
     </task>
     <servers />
   </component>

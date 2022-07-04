@@ -13,10 +13,13 @@
 #include <esp-gui/Util.hpp>
 #include <yal/yal.hpp>
 #include <any>
+#include <chrono>
 
 namespace esp_gui {
 
-enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON };
+using std::chrono_literals::operator""s;
+
+enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON, UPLOAD };
 
 class Element {
  public:
@@ -63,7 +66,7 @@ class ListElement : public Element {
       m_options(std::move(options)) {
   }
 
-  virtual ~ListElement() = default;
+  ~ListElement() override  = default;
 
   void addOption(const String& option) {
     m_options.push_back(option);
@@ -98,12 +101,36 @@ class ButtonElement : public Element {
  public:
   using OnClick = std::function<void()>;
 
-  ButtonElement(String label, String configName, OnClick&& onClick) :
+  ButtonElement(String label, String configName, OnClick&& onClick, std::chrono::seconds delayBeforeRedirect = 0s) :
+      Element(ElementType::BUTTON, std::move(label), std::move(configName), true),
+      m_onClick(std::move(onClick)), m_delay(delayBeforeRedirect) {
+  }
+
+  ~ButtonElement() override = default;
+
+  void click() {
+    if (m_onClick) m_onClick();
+  }
+
+  [[nodiscard]] std::chrono::seconds delay() {
+    return m_delay;
+  }
+
+ private:
+  OnClick m_onClick;
+  std::chrono::seconds m_delay;
+};
+
+class UploadElement : public Element {
+ public:
+  using OnClick = std::function<void()>;
+
+  UploadElement(String label, String configName, OnClick&& onClick) :
       Element(ElementType::BUTTON, std::move(label), std::move(configName), true),
       m_onClick(std::move(onClick)) {
   }
 
-  virtual ~ButtonElement() = default;
+  virtual ~UploadElement() = default;
 
   void click() {
     if (m_onClick) m_onClick();
@@ -172,6 +199,9 @@ class WebServer {
   static inline const String m_listSuffix = "___list";
 
   const String m_htmlIndex = "/index.html";
+  static inline const char* const s_redirectDelayedURL = "/delay";
+
+  std::chrono::seconds m_redirectDelay = 15s;
 
   static constexpr const char* PROGMEM CONTENT_TYPE_HTML = "text/html";
   enum HtmlReturnCode {

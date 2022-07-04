@@ -218,7 +218,7 @@ void WifiManager::addWifiContainers() {
   };
 
   elements.emplace_back(esp_gui::ButtonElement(
-    String("Scan Wifi (will disconnect Wifi)"), m_scanWifiButton, std::move(onScanClick)));
+    String("Scan Wifi"), m_scanWifiButton, std::move(onScanClick), 15s));
 
   elements.emplace_back(esp_gui::Element(
     esp_gui::ElementType::PASSWORD, String("Password"), m_cfgWifiPassword));
