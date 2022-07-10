@@ -147,21 +147,53 @@ class ButtonElement : public Element {
 
 class UploadElement : public Element {
  public:
-  using OnClick = std::function<void()>;
+  // using OnClick = std::function<void()>;
+  using OnUpload = ArUploadHandlerFunction;
+  using OnPost = std::function<void(AsyncWebServerRequest* request)>;
 
-  UploadElement(String label, String configName, OnClick&& onClick) :
-      Element(ElementType::BUTTON, std::move(label), std::move(configName), true),
-      m_onClick(std::move(onClick)) {
+  UploadElement(
+    String browseLabel,
+    String buttonLabel,
+    String configName,
+    String acceptedFiles,
+    OnUpload&& onUpload,
+    OnPost&& onPost) :
+      Element(ElementType::UPLOAD, std::move(buttonLabel), std::move(configName), true),
+      m_browseLabel(std::move(browseLabel)),
+      m_acceptedFiles(std::move(acceptedFiles)),
+      m_onUpload(std::move(onUpload)),
+      m_onPost(std::move(onPost)) {
   }
 
   ~UploadElement() override = default;
 
-  void click() const {
-    if (m_onClick) m_onClick();
+  void onUpload(
+    AsyncWebServerRequest* request,
+    const String& filename,
+    size_t index,
+    uint8_t* data,
+    size_t len,
+    bool final) const {
+    m_onUpload(request, filename, index, data, len, final);
+  }
+
+  void onPost(AsyncWebServerRequest* request) const {
+    m_onPost(request);
+  }
+
+  [[nodiscard]] const String& acceptedFiles() const {
+    return m_acceptedFiles;
+  }
+
+  [[nodiscard]] const String& browseLabel() const {
+    return m_browseLabel;
   }
 
  private:
-  OnClick m_onClick;
+  String m_browseLabel;
+  String m_acceptedFiles;
+  OnUpload m_onUpload;
+  OnPost m_onPost;
 };
 
 class Container {
@@ -204,9 +236,20 @@ class Container {
       InputElement(type, std::move(label), std::move(configName), isReadOnly));
   }
 
-  void addUpload(String label, String configName, UploadElement::OnClick&& onClick) {
-    m_elements.emplace_back(
-      UploadElement(std::move(label), std::move(configName), std::move(onClick)));
+  void addUpload(
+    String browseLabel,
+    String buttonLabel,
+    String configName,
+    String acceptedFiles,
+    UploadElement::OnUpload&& onUpload,
+    UploadElement::OnPost&& onPost) {
+    m_elements.emplace_back(UploadElement(
+      std::move(browseLabel),
+      std::move(buttonLabel),
+      std::move(configName),
+      std::move(acceptedFiles),
+      std::move(onUpload),
+      std::move(onPost)));
   }
 
  private:
@@ -217,7 +260,7 @@ class Container {
 class WebServer {
  public:
   WebServer(int port, const char* const hostname, Configuration& config) :
-      m_asyncWebServer(AsyncWebServer(port)), m_hostname("default"), m_config(config) {
+      m_asyncWebServer(AsyncWebServer(port)), m_hostname(hostname), m_config(config) {
   }
 
   WebServer(const WebServer&) = delete;
@@ -238,6 +281,12 @@ class WebServer {
     }
     return std::any_cast<T>(iter->second);
   }
+
+  void redirectBackToHome(
+    AsyncWebServerRequest* request,
+    const std::chrono::seconds& delay);
+
+  void reset(AsyncWebServerRequest* request);
 
  private:
   AsyncWebServer m_asyncWebServer;
@@ -267,14 +316,7 @@ class WebServer {
   // void addToContainerData(const char* const data);
   void rootHandleGet(AsyncWebServerRequest* request);
   void rootHandlePost(AsyncWebServerRequest* request);
-  void updateHandlePost(AsyncWebServerRequest* request);
-  void updateHandleUpload(
-    AsyncWebServerRequest* request,
-    const String& filename,
-    size_t index,
-    uint8_t* data,
-    size_t len,
-    bool final);
+
   void eraseConfig(AsyncWebServerRequest* request);
   void onClick(AsyncWebServerRequest* request);
   [[nodiscard]] String templateCallback(const String& templateString);
@@ -304,6 +346,7 @@ class WebServer {
     std::stringstream& ss);
 
   static void makeButton(const Element* element, std::stringstream& ss);
+  void makeUpload(const Element* element, std::stringstream& ss);
 
   [[nodiscard]] bool fileSystemAndDataChunksEqual(
     unsigned int offset,
@@ -318,10 +361,9 @@ class WebServer {
   [[nodiscard]] bool isCaptivePortal(AsyncWebServerRequest* pRequest);
   void onNotFound(AsyncWebServerRequest* request);
 
-  void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
   [[nodiscard]] static bool isIp(const String& str);
 
-  [[nodiscard]] static Element* anyToElement(std::any& any);
+  [[nodiscard]] Element* anyToElement(std::any& any);
 };
 }  // namespace esp_gui
 
