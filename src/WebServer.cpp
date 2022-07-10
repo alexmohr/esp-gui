@@ -63,11 +63,14 @@ void WebServer::setup(const String& hostname) {
     }
   });
 
-  m_asyncWebServer.on(s_redirectDelayedURL, HTTP_GET, [this](AsyncWebServerRequest* request) {
-    request->send_P(HTTP_OK, CONTENT_TYPE_HTML, s_htmlRedirectDelayed, [&](const String& templateString){
-      return String(m_redirectDelay.count());
+  m_asyncWebServer.on(
+    s_redirectDelayedURL, HTTP_GET, [this](AsyncWebServerRequest* request) {
+      request->send_P(
+        HTTP_OK,
+        CONTENT_TYPE_HTML,
+        s_htmlRedirectDelayed,
+        [&](const String& templateString) { return String(m_redirectDelay.count()); });
     });
-  });
 
   static constexpr const char* updatePath = "/update";
   m_asyncWebServer.on(updatePath, HTTP_GET, [](AsyncWebServerRequest* request) {
@@ -99,7 +102,7 @@ void WebServer::addContainer(Container&& container) {
 bool WebServer::containerSetupDone() {
   for (auto& container : m_container) {
     for (auto& any : container.elements()) {
-      Element* element = anyToElement(any);
+      const Element* element = anyToElement(any);
       if (element != nullptr) {
         m_elementMap[element->configName()] = &any;
         m_logger.log(yal::Level::DEBUG, "Adding % to map", element->configName().c_str());
@@ -405,7 +408,7 @@ String WebServer::templateCallback(const String& templateString) {
   if (listValue != nullptr) {
     return listTemplate(templ, listValue, getDataList);
   } else {
-    String value = m_config.value<String>(templ);
+    const auto value = m_config.value<String>(templ);
     m_logger.log(
       yal::Level::DEBUG,
       "Replacing template string '%' with %",
@@ -523,7 +526,6 @@ void WebServer::onClick(AsyncWebServerRequest* const request) {
     }
 
     return;
-
   }
 }
 
@@ -576,16 +578,15 @@ bool WebServer::isIp(const String& str) {
 }
 
 Element* WebServer::anyToElement(std::any& any) {
-  Element* element = nullptr;
   if (std::type_index(typeid(Element)) == any.type()) {
-    element = std::any_cast<Element>(&any);
+    return std::any_cast<Element>(&any);
   } else if (std::type_index(typeid(ListElement)) == any.type()) {
-    element = std::any_cast<ListElement>(&any);
+    return std::any_cast<ListElement>(&any);
   } else if (std::type_index(typeid(ButtonElement)) == any.type()) {
-    element = std::any_cast<ButtonElement>(&any);
+    return std::any_cast<ButtonElement>(&any);
   }
 
-  return element;
+  return nullptr;
 }
 
 }  // namespace esp_gui
