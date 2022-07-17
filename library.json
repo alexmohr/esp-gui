@@ -1,8 +1,8 @@
 {
   "name": "esp-gui",
-  "version": "0.0.1",
-  "description": "All in one web ui",
-  "keywords": "logging, esp",
+  "version": "0.1.0",
+  "description": "Library to make ESP guis simple",
+  "keywords": "gui, esp",
   "repository": {
     "type": "git",
     "url": "https://github.com/alexmohr/esp-gui.git"
@@ -17,12 +17,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "yal": "0.0.2",
-    "ESP Async WebServer": "^1.2.2",
-    "ESP AsyncTCP": "^1.2.1",
-    "AsyncTCP": "^1.1.0",
-    "ArduinoJson": "^6.19.4"
   },
   "frameworks": "arduino",
-  "platforms": "espressif8266"
+  "platforms": "*"
 }
