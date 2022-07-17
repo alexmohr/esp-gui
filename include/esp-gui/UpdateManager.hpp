@@ -6,8 +6,8 @@
 #ifndef ESP_GUI_UPDATEMANAGER_H
 #define ESP_GUI_UPDATEMANAGER_H
 #include "ESPAsyncWebServer.h"
-#include <yal/yal.hpp>
 #include <esp-gui/WebServer.hpp>
+#include <yal/yal.hpp>
 namespace esp_gui {
 class UpdateManager {
  public:

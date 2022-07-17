@@ -36,7 +36,7 @@ void UpdateManager::onUpload(
     m_logger.log(yal::Level::INFO, "Starting update with file: %", filename.c_str());
 
     Update.runAsync(true);
-    if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
+    if (!Update.begin((EspClass::getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
       Update.printError(Serial);
     }
   }
@@ -57,17 +57,11 @@ void UpdateManager::onUpload(
 }
 
 void UpdateManager::onPost(AsyncWebServerRequest* request) {
-
-
   const bool updateSuccess = !Update.hasError();
-
-
-  if (updateSuccess) {
-    m_webServer.reset(request);
-    m_logger.log(yal::Level::INFO, "Y");
-  }
-
   m_webServer.redirectBackToHome(request, 30s);
+
+  m_webServer.reset(
+    request, (String("Update ") + (updateSuccess ? "success" : "failed")).c_str());
 }
 
 }  // namespace esp_gui
