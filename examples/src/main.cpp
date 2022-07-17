@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 #include <esp-gui/Configuration.hpp>
+#include <esp-gui/UpdateManager.hpp>
 #include <esp-gui/WebServer.hpp>
 #include <esp-gui/WifiManager.hpp>
 #include <yal/appender/ArduinoSerial.hpp>
@@ -14,39 +15,55 @@ yal::appender::ArduinoSerial<HardwareSerial> m_serialAppender(&m_logger, &Serial
 
 esp_gui::Configuration m_config;
 esp_gui::WebServer m_server(80, "demo", m_config);
-String m_powerFoobar = "power_foobar";
-String m_powerUsage = "power_usage";
-String m_myConfig = "power_int";
+// optional: enable configure of wifi
+esp_gui::WifiManager m_wifiMgr(m_config, m_server);
+
+// optional: enable firmware upload
+esp_gui::UpdateManager m_updateManager(m_server);
+String m_demoString = "demo_string";
+String m_demoInt = "demo_int";
+String m_demoList = "demo_list";
+String m_demoButton = "demo_button";
+int m_listIdx = 0;
 
 void setup() {
   m_serialAppender.begin(115200);
   m_logger.log(yal::Level::INFO, "Running setup");
-  m_logger.setLevel(yal::Level::TRACE);
+  yal::Logger::setLevel(yal::Level::TRACE);
   m_config.setup();
 
   m_server.setPageTitle("ESP-GUI Demo");
 
-  m_config.setValue(m_powerFoobar, "foobar");
-  m_config.setValue(m_powerUsage, 42);
+  // This will overwrite the value from the configuration.
+  m_config.setValue(m_demoInt, 42);
+  m_config.setValue(m_demoString, "ESP-GUI");
 
-  std::vector<esp_gui::Element> elements;
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::INT, String("Power Usage"), m_powerUsage));
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::STRING, String("Foobar"), m_powerFoobar));
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::INT, String("Config Int"), m_myConfig));
-  esp_gui::Container powerUsage("Power usage", std::move(elements));
+  esp_gui::Container demoContainer("Demo");
+  demoContainer.addInput(esp_gui::InputElementType::INT, String("Demo int"), m_demoInt);
+  demoContainer.addInput(
+    esp_gui::InputElementType::STRING, String("Demo String"), m_demoString);
+  demoContainer.addList({"option 1", "hello", "world"}, String("Demo List"), m_demoList);
 
-  m_server.addContainer(std::move(powerUsage));
-  esp_gui::WifiManager wifiMgr(m_config, m_server);
-  wifiMgr.setup(false);
+  demoContainer.addButton(String("Append list item"), m_demoButton, [] {
+    const auto list = m_server.findElement<esp_gui::ListElement>(m_demoList);
+    if (list == nullptr) {
+      return;
+    }
+    list->addOption("dynamic list item" + String(++m_listIdx));
+  });
 
+  m_server.addContainer(std::move(demoContainer));
+  m_wifiMgr.setup(false);
+  m_updateManager.setup();
   m_server.setup(m_config.value<String>("wifi_hostname"));
 }
 
 void loop() {
+  m_wifiMgr.loop();
   delay(1000);
-  int currentUsage = m_config.value<int>(m_powerUsage);
-  m_config.setValue(m_powerUsage, currentUsage + 1);
+  int currentUsage = m_config.value<int>(m_demoInt);
+  m_config.setValue(m_demoInt, currentUsage + 1);
+  // optional: this persists the value in eeprom.
+  // should not be done on a regular basis because eeprom has only 10k write cycles
+  // m_config.setValue(m_demoInt, currentUsage + 1, true);
 }
