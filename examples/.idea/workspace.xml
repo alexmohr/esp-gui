@@ -18,11 +18,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c76e7dda-a9eb-4718-a489-fbe6aa5ca848" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/UpdateManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/UpdateManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/WebServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WebServer.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -126,7 +123,7 @@
       <workItem from="1656956571297" duration="1174000" />
       <workItem from="1657021238157" duration="1160000" />
       <workItem from="1657462399659" duration="6757000" />
-      <workItem from="1658064647222" duration="8902000" />
+      <workItem from="1658064647222" duration="8959000" />
     </task>
     <servers />
   </component>
