@@ -491,18 +491,12 @@ void WebServer::rootHandlePost(AsyncWebServerRequest* const request) {
 
   m_config.store();
 
-  request->send(
-    HTTP_OK,
-    CONTENT_TYPE_HTML,
-    "<html><head><title>200</title></head><body><h1>OK</h1></body>");
+  redirectBackToHome(request, 0s);
 }
 
 void WebServer::eraseConfig(AsyncWebServerRequest* const request) {
   m_config.reset(true);
-  request->send(
-    HTTP_NOT_FOUND,
-    CONTENT_TYPE_HTML,
-    "<html><head><title>200</title></head><body><h1>OK</h1></body>");
+  redirectBackToHome(request, 0s);
 }
 
 void WebServer::onClick(AsyncWebServerRequest* const request) {

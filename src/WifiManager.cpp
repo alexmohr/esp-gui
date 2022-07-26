@@ -196,7 +196,7 @@ bool WifiManager::getFastConnectConfig(const String& ssid, fastConfig& config) {
   // adopted from
   // https://github.com/roberttidey/WiFiManager/blob/feature_fastconnect/WiFiManager.cpp
   int8_t networksFound = WiFi.scanNetworks();
-  int32_t scan_rssi = -200;
+  int32_t scan_rssi = -75;
   for (auto i = 0; i < networksFound; i++) {
     if (ssid == WiFi.SSID(i)) {
       if (WiFi.RSSI(i) > scan_rssi) {
