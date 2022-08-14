@@ -21,7 +21,7 @@ namespace esp_gui {
 using std::chrono_literals::operator""s;
 
 enum class InputElementType { STRING, PASSWORD, INT, DOUBLE };
-enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON, UPLOAD };
+enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON, UPLOAD, DROPDOWN };
 
 class Element {
  public:
@@ -83,18 +83,19 @@ class InputElement : public Element {
   }
 };
 
-class ListElement : public Element {
+class ChoiceElementBase : public Element {
  public:
-  ListElement(
-    std::vector<String> options,
+  ChoiceElementBase(
+    std::vector<String>&& options,
+    ElementType type,
     String label,
     String configName,
     bool isReadOnly = false) :
-      Element(ElementType::LIST, std::move(label), std::move(configName), isReadOnly),
+      Element(type, std::move(label), std::move(configName), isReadOnly),
       m_options(std::move(options)) {
   }
 
-  ~ListElement() override = default;
+  ~ChoiceElementBase() override = default;
 
   void addOption(const String& option) {
     m_options.push_back(option);
@@ -114,6 +115,39 @@ class ListElement : public Element {
 
  private:
   std::vector<String> m_options;
+};
+
+class ListElement : public ChoiceElementBase {
+ public:
+  ListElement(
+    std::vector<String>&& options,
+    String label,
+    String configName,
+    bool isReadOnly = false) :
+      ChoiceElementBase(
+        std::move(options),
+        ElementType::LIST,
+        std::move(label),
+        std::move(configName),
+        isReadOnly) {
+  }
+};
+
+class DropDownElement : public ChoiceElementBase {
+ public:
+ public:
+  DropDownElement(
+    std::vector<String>&& options,
+    String label,
+    String configName,
+    bool isReadOnly = false) :
+      ChoiceElementBase(
+        std::move(options),
+        ElementType::DROPDOWN,
+        std::move(label),
+        std::move(configName),
+        isReadOnly) {
+  }
 };
 
 class ButtonElement : public Element {
@@ -210,11 +244,20 @@ class Container {
   }
 
   void addList(
-    std::vector<String> options,
+    std::vector<String>&& options,
     String label,
     String configName,
     bool isReadOnly = false) {
     m_elements.emplace_back(ListElement(
+      std::move(options), std::move(label), std::move(configName), isReadOnly));
+  }
+
+  void addDropdown(
+    std::vector<String>&& options,
+    String label,
+    String configName,
+    bool isReadOnly = false) {
+    m_elements.emplace_back(DropDownElement(
       std::move(options), std::move(label), std::move(configName), isReadOnly));
   }
 
@@ -298,7 +341,7 @@ class WebServer {
   std::vector<Container> m_container;
   std::map<String, std::any*> m_elementMap;
 
-  static inline const String m_listSuffix = "___list";
+  static inline const String m_optionSuffix = "___list";
 
   const String m_htmlIndex = "/index.html";
   static inline const char* const s_redirectDelayedURL = "/delay";
@@ -320,10 +363,10 @@ class WebServer {
   void eraseConfig(AsyncWebServerRequest* request);
   void onClick(AsyncWebServerRequest* request);
   [[nodiscard]] String templateCallback(const String& templateString);
-  [[nodiscard]] String listTemplate(
+  [[nodiscard]] String optionTemplate(
     const String& templ,
-    const ListElement* listValue,
-    bool isListValue);
+    const ChoiceElementBase* listValue,
+    bool getDataList);
 
   enum class WriteAndCheckResult {
     SUCCESS,
@@ -334,6 +377,12 @@ class WebServer {
   [[nodiscard]] bool containerSetupDone();
   [[nodiscard]] WriteAndCheckResult checkAndWriteHTML(bool writeFS);
   static void makeInput(
+    const Element* element,
+    const String& elementValue,
+    const String& inputType,
+    std::stringstream& ss);
+
+  static void makeDatalist(
     const Element* element,
     const String& elementValue,
     const String& inputType,

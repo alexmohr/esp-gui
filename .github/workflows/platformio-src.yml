@@ -1,4 +1,4 @@
-name: Platformio
+name: source
 
 on:
   push:
