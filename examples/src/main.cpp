@@ -24,7 +24,9 @@ esp_gui::UpdateManager m_updateManager(m_server);
 String m_demoString = "demo_string";
 String m_demoInt = "demo_int";
 String m_demoList = "demo_list";
+String m_demoDropdown = "demo_dropdown";
 String m_demoButton = "demo_button";
+String m_demoDropdownButton = "dropdown_demo_button";
 int m_listIdx = 0;
 
 void setup() {
@@ -52,6 +54,18 @@ void setup() {
     }
     list->addOption("dynamic list item" + String(++m_listIdx));
   });
+
+  demoContainer.addDropdown(
+    {"Element 1", "Element 2", "Element 3"}, String("Demo Dropdown"), m_demoDropdown);
+  demoContainer.addButton(String("Append dropdown item"), m_demoDropdownButton, [] {
+    const auto dropDown = m_server.findElement<esp_gui::DropDownElement>(m_demoDropdown);
+    if (dropDown == nullptr) {
+      return;
+    }
+    dropDown->addOption("dynamic list item" + String(++m_listIdx));
+  });
+  // You can set the selected value programmatically like this
+  // m_config.setValue(m_demoDropdown, "Element 3");
 
   m_server.addContainer(std::move(demoContainer));
   m_wifiMgr.setup(false);
