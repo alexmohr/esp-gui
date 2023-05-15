@@ -3,6 +3,7 @@
 // Licensed under the terms of the MIT License
 //
 
+#if ESP_GUI_BUILD_MAIN
 #include <Arduino.h>
 #include <esp-gui/Configuration.hpp>
 #include <esp-gui/UpdateManager.hpp>
@@ -67,3 +68,4 @@ void loop() {
   // should not be done on a regular basis because eeprom has only 10k write cycles
   // m_config.setValue(m_demoInt, currentUsage + 1, true);
 }
+#endif
