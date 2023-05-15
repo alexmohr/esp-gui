@@ -10,32 +10,15 @@
 
 namespace esp_gui {
 
-struct FileSystemHandle {
-  FileSystemHandle() {
-    if (!LittleFS.begin()) {
-      m_logger.log(yal::Level::ERROR, "failed to init littlefs");
-      return;
-    }
-  }
-  ~FileSystemHandle() {
-    LittleFS.end();
-  }
- private:
-  yal::Logger m_logger = yal::Logger("CONFIG");
-};
-
 void Configuration::setup() {
   {
-    FileSystemHandle fsHandle;
     m_logger.log(yal::Level::DEBUG, "Loading config");
-    auto file = LittleFS.open(m_configFile, "r");
-    if (!file) {
+    FileHandle file(m_configFile);
+    if (!file.open("r")) {
       m_logger.log(yal::Level::ERROR, "Failed to read config from FS");
-      return;
     }
 
-    auto readSize = file.read(m_jsonData.data(), m_jsonData.size());
-    file.close();
+    auto readSize = file.file().read(m_jsonData.data(), m_jsonData.size());
     m_logger.log(
       yal::Level::DEBUG, "Read % bytes from FS, data: ", readSize, m_jsonData.data());
   }
@@ -51,10 +34,8 @@ void Configuration::setup() {
 }
 
 void Configuration::store() {
-  m_logger.log(yal::Level::DEBUG, "Storing config");
-  FileSystemHandle fsHandle;
-  File file = LittleFS.open(m_configFile, "w");
-  if (!file) {
+  FileHandle file(m_configFile);
+  if (!file.open("w")) {
     m_logger.log(yal::Level::ERROR, "Failed to open config for writing");
     return;
   }
@@ -62,7 +43,7 @@ void Configuration::store() {
   ArduinoJson6194_F1::serializeJson(m_config, cfg);
 
   const auto cfgStr = cfg.str();
-  const auto writtenBytes = file.write(cfgStr.c_str(), cfgStr.size());
+  const auto writtenBytes = file.file().write(cfgStr.c_str(), cfgStr.size());
   file.close();
   if (writtenBytes != cfgStr.size()) {
     m_logger.log(
@@ -73,13 +54,17 @@ void Configuration::store() {
     return;
   }
 
-  m_logger.log(yal::Level::INFO, "Config RAM usage % of % bytes (%)",
-               m_config.memoryUsage(),
-               m_jsonData.size(),
-               (static_cast<float>( m_config.memoryUsage()) / static_cast<float>(m_jsonData.size())) * 100.0F);
+  m_logger.log(
+    yal::Level::INFO,
+    "Config RAM usage % of % bytes (%)",
+    m_config.memoryUsage(),
+    m_jsonData.size(),
+    (static_cast<float>(m_config.memoryUsage()) / static_cast<float>(m_jsonData.size())) *
+      100.0F);
 
   m_logger.log(
     yal::Level::INFO, "Successfully updated config", writtenBytes, cfgStr.size());
+  logConfig();
 }
 
 void Configuration::reset(bool persist) {
@@ -88,7 +73,6 @@ void Configuration::reset(bool persist) {
   if (persist) {
     store();
   }
-
 }
 
 }  // namespace esp_gui

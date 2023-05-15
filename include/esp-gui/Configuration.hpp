@@ -8,6 +8,7 @@
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>
 #include <yal/yal.hpp>
 #include <any>
 #include <map>
@@ -30,8 +31,6 @@ class Configuration {
   template<typename T>
   T value(const String& key) {
     m_logger.log(yal::Level::DEBUG, "Retrieving configuration key %", key.c_str());
-    logConfig();
-
     return m_config[key];
   }
 
@@ -44,7 +43,6 @@ class Configuration {
       return;
     }
     m_config[key] = value;
-    logConfig();
     if (persist) {
       store();
     }
@@ -53,6 +51,61 @@ class Configuration {
   void setup();
   void store();
   void reset(bool persist);
+
+  struct FileSystemHandle {
+    FileSystemHandle() = default;
+    bool begin() {
+      if (!LittleFS.begin()) {
+        m_logger.log(yal::Level::ERROR, "failed to init littlefs");
+        return false;
+      }
+      return true;
+    }
+
+    ~FileSystemHandle() {
+      LittleFS.end();
+    }
+
+   private:
+    yal::Logger m_logger = yal::Logger("CONFIG");
+  };
+
+  struct FileHandle {
+    FileHandle(const char* const fileName, bool openFS = true) : m_fileName(fileName) {
+      if (openFS) {
+        m_fs = std::make_unique<FileSystemHandle>();
+      }
+    }
+
+    ~FileHandle() {
+      close();
+    }
+
+    bool open(const char* const mode) {
+      if (m_fs) {
+        if (!m_fs->begin()) {
+          return false;
+        }
+      }
+      m_file = LittleFS.open(m_fileName, mode);
+      return m_file;
+    }
+
+    void close() {
+      if (m_file) {
+        m_file.close();
+      }
+    }
+
+    File& file() {
+      return m_file;
+    }
+
+   private:
+    const char* const m_fileName;
+    File m_file;
+    std::unique_ptr<FileSystemHandle> m_fs;
+  };
 
  private:
   template<typename T>

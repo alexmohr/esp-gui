@@ -9,7 +9,8 @@
 namespace esp_gui {
 
 void WifiManager::setup(bool showConfigPortal) {
-  if (showConfigPortal || !loadAPsFromConfig() || connectMultiWiFi() != WL_CONNECTED) {
+  if (
+    showConfigPortal || !loadAPsFromConfig() || connectMultiWiFi(true) != WL_CONNECTED) {
     // Starts access point
     while (!showConfigurationPortal()) {
       m_logger.log(
@@ -107,7 +108,7 @@ bool WifiManager::checkWifi() {
   }
 
   m_logger.log(yal::Level::WARNING, "WIFi disconnected, reconnecting...");
-  if (connectMultiWiFi() == WL_CONNECTED) {
+  if (connectMultiWiFi(false) == WL_CONNECTED) {
     m_reconnectCount = 0;
     return true;
   }
@@ -117,7 +118,7 @@ bool WifiManager::checkWifi() {
   return false;
 }
 
-wl_status_t WifiManager::connectMultiWiFi() {
+wl_status_t WifiManager::connectMultiWiFi(bool useFastConfig) {
   WiFi.forceSleepWake();
   m_logger.log(yal::Level::INFO, "Connecting WiFi...");
 
@@ -129,9 +130,12 @@ wl_status_t WifiManager::connectMultiWiFi() {
   const auto password = m_config.value<std::string>("wifi_password");
 
   fastConfig connectConfig{};
-  const auto hasFastConfig = getFastConnectConfig(ssid.c_str(), connectConfig);
+  const auto hasFastConfig =
+    useFastConfig && getFastConnectConfig(ssid.c_str(), connectConfig);
   wl_status_t status;
+  uint8_t connectTimeout = 60;
   if (hasFastConfig) {
+    connectTimeout = 30;
     m_logger.log(yal::Level::DEBUG, "Using fast connect");
     status = WiFi.begin(
       ssid.c_str(), password.c_str(), connectConfig.channel, connectConfig.bssid, true);
@@ -141,7 +145,7 @@ wl_status_t WifiManager::connectMultiWiFi() {
   }
 
   int i = 0;
-  while ((i++ < 100) && (status != WL_CONNECTED)) {
+  while ((i++ < connectTimeout) && (status != WL_CONNECTED)) {
     delay(100);
     status = WiFi.status();
     if (status == WL_CONNECTED) {
@@ -153,11 +157,11 @@ wl_status_t WifiManager::connectMultiWiFi() {
     //@formatter:off
     m_logger.log(
       yal::Level::INFO,
-      "Wifi connected:\n"
-      "SSID: %\n"
-      "RSSI=%\n"
-      "Channel: %\n"
-      "IP address: %",
+      "Wifi connected:"
+      "SSID: %, "
+      "RSSI=%, "
+      "Channel: %, "
+      "IP address: %, ",
       WiFi.SSID().c_str(),
       static_cast<int>(WiFi.RSSI()),
       WiFi.channel(),
@@ -165,6 +169,10 @@ wl_status_t WifiManager::connectMultiWiFi() {
     //@formatter:on
   } else {
     m_logger.log(yal::Level::WARNING, "WiFi connect timeout");
+    if (hasFastConfig) {
+      m_logger.log(yal::Level::WARNING, "Fast config failed, trying slow path");
+      return connectMultiWiFi(false);
+    }
   }
 
   return status;

@@ -36,7 +36,7 @@ class WifiManager {
   [[nodiscard]] std::vector<String> getApList() const;
   static bool getFastConnectConfig(const String &ssid, fastConfig &config);
 
-  wl_status_t connectMultiWiFi();
+  wl_status_t connectMultiWiFi(bool useFastConfig);
 
   unsigned char m_reconnectCount = 0;
 

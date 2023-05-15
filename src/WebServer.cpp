@@ -4,8 +4,10 @@
 //
 
 #include <ESP8266mDNS.h>
+#include <LittleFS.h>
 #include <esp-gui/Util.hpp>
 #include <esp-gui/WebServer.hpp>
+#include <md5.h>
 #include <functional>
 #include <string>
 
@@ -17,6 +19,8 @@ static const constexpr char* const s_indexDataStart =
 static const constexpr char* const s_indexDataEnd = R"(</div></form></body></html>)";
 
 void WebServer::setup(const String& hostname) {
+  m_logger.log(
+    yal::Level::DEBUG, "Setting up web server with hostname: %", hostname.c_str());
   m_container.reserve(10);
   m_hostname = hostname;
   MDNS.begin(m_hostname);
@@ -51,41 +55,86 @@ void WebServer::addContainer(Container&& container) {
   m_container.emplace_back(container);
 }
 
-void WebServer::addToContainerData(const char* const data) {
-  const auto len = std::strlen(data);
-  const auto remainingSize = std::min(m_containerData.size() - m_containerDataUsed, len);
+// void WebServer::addToContainerData(const char* const data) {
+//   const auto len = std::strlen(data);
+//   const auto remainingSize = std::min(m_containerData.size() - m_containerDataUsed,
+//   len);
+//
+//   memcpy(m_containerData.data() + m_containerDataUsed, data, remainingSize);
+//   m_containerDataUsed += remainingSize;
+//
+//   m_logger.log(
+//     yal::Level::INFO,
+//     "Container RAM usage: % of % bytes (%)",
+//     m_containerDataUsed,
+//     m_containerData.size(),
+//     (static_cast<float>(m_containerDataUsed) /
+//      static_cast<float>(m_containerData.size())) *
+//       100.0F);
+// }
 
-  memcpy(m_containerData.data() + m_containerDataUsed, data, remainingSize);
-  m_containerDataUsed += remainingSize;
+bool WebServer::containerSetupDone() {
+  const auto checkResult = checkAndWriteHTML(false);
+  if (checkResult == WriteAndCheckResult::SUCCESS) {
+    return true;
+  }
 
-  m_logger.log(
-    yal::Level::INFO,
-    "Container RAM usage: % of % bytes (%)",
-    m_containerDataUsed,
-    m_containerData.size(),
-    (static_cast<float>(m_containerDataUsed) / static_cast<float>(m_containerData.size())) * 100.0F);
+  m_logger.log(yal::Level::INFO, "MD5 mismatch, writing html index file");
+  const auto writeResult = checkAndWriteHTML(true);
+  return writeResult == WriteAndCheckResult::SUCCESS;
 }
 
-void WebServer::containerSetupDone() {
-  // todo support lists
+WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
+  unsigned int offset = 0U;
 
-  for (int containerIdx = 0; containerIdx < m_container.size(); ++containerIdx) {
-    auto& container = m_container.at(containerIdx);
+  const auto checkOrWrite =
+    [&](unsigned int offset, const uint8_t* data, int size, bool clearFile = false) {
+      if (writeFS) {
+        m_logger.log(
+          yal::Level::DEBUG, "writing % bytes to config at offset %", size, offset);
+        if (!fileSystemWriteChunk(offset, data, size, clearFile)) {
+          return WriteAndCheckResult::WRITE_FAILED;
+        }
+      } else {
+        m_logger.log(
+          yal::Level::DEBUG, "validating % bytes of config at offset %", size, offset);
+        if (!fileSystemAndDataChunksEqual(offset, data, size)) {
+          return WriteAndCheckResult::CHECKSUM_MISSMATCH;
+        }
+      }
+
+      return WriteAndCheckResult::SUCCESS;
+    };
+
+  {
+    const auto startLen = std::strlen(s_indexDataStart);
+    const auto result = checkOrWrite(
+      offset, reinterpret_cast<const uint8_t*>(s_indexDataStart), startLen, true);
+    if (result != WriteAndCheckResult::SUCCESS) {
+      return result;
+    }
+
+    offset += startLen;
+  }
+
+  // todo support lists
+  for (const auto& container : m_container) {
+    std::stringstream ss;
     static const constexpr auto containerStart PROGMEM =
       R"(<div class="flex-card"><div class="hero">)";
-    addToContainerData(containerStart);
+    ss << containerStart;
 
     static const constexpr auto h3 PROGMEM = "<h3>";
-    addToContainerData(h3);
+    ss << h3;
 
-    addToContainerData(container.title().c_str());
+    ss << container.title().c_str();
 
     static const constexpr auto containerClass PROGMEM =
       R"(</h3></div><div class="content">)";
-    addToContainerData(containerClass);
 
-    for (int elementIdx = 0; elementIdx < container.elements().size(); ++elementIdx) {
-      const auto element = container.elements().at(elementIdx);
+    ss << containerClass;
+
+    for (const auto& element : container.elements()) {
       const auto& strId = element.configName();
 
       // todo catch std::any cast errors
@@ -94,20 +143,13 @@ void WebServer::containerSetupDone() {
       String elementHTMLType;
       switch (element.type()) {
         case ElementType::STRING:
-
-           // std::any_cast<String>(element.value());
           elementHTMLType = "text";
           break;
         case ElementType::STRING_PASSWORD:
-         // elementValue = std::any_cast<String>(element.value());
           elementHTMLType = "password";
           break;
         case ElementType::INT:
-         // elementValue = String(std::any_cast<int>(element.value()));
-          elementHTMLType = "number";
-          break;
         case ElementType::DOUBLE:
-         // elementValue = String(std::any_cast<double>(element.value()));
           elementHTMLType = "number";
           break;
       }
@@ -118,11 +160,116 @@ void WebServer::containerSetupDone() {
                                  strId + R"(" class="inputLarge")" + "name=\"" + strId +
                                  +"\" value=\"" + elementValue + "\" " + "type=\"" +
                                  elementHTMLType + "\"</><br/>";
-      addToContainerData(labelAndInput.c_str());
+      ss << labelAndInput.c_str();
     }
+
     static const auto containerEnd PROGMEM = "</div></div>";
-    addToContainerData(containerEnd);
+    ss << containerEnd;
+
+    ss.seekg(0, std::ios::end);
+    const auto ssSize = ss.tellg();
+    ss.seekg(0, std::ios::beg);
+
+    const auto result =
+      checkOrWrite(offset, reinterpret_cast<const uint8_t*>(ss.str().data()), ssSize);
+    if (result != WriteAndCheckResult::SUCCESS) {
+      return result;
+    }
+
+    offset += ssSize;
   }
+
+  {
+    const auto endLen = std::strlen(s_indexDataEnd);
+    const auto result =
+      checkOrWrite(offset, reinterpret_cast<const uint8_t*>(s_indexDataEnd), endLen);
+    if (result != WriteAndCheckResult::SUCCESS) {
+      return result;
+    }
+    offset += endLen;
+  }
+
+  if (!writeFS) {
+    Configuration::FileHandle file(m_htmlIndex.c_str());
+    file.open("r");
+    if (file.file().seek(offset + 1)) {
+      m_logger.log(yal::Level::DEBUG, "Trailing data in file");
+      return WriteAndCheckResult::CHECKSUM_MISSMATCH;
+    }
+  }
+
+  return WriteAndCheckResult::SUCCESS;
+}
+
+bool WebServer::fileSystemAndDataChunksEqual(
+  unsigned int offset,
+  const uint8_t* data,
+  int size) const {
+  Configuration::FileHandle file(m_htmlIndex.c_str());
+  if (!file.open("r")) {
+    m_logger.log(yal::Level::ERROR, "Failed to read config from FS");
+    return false;
+  }
+
+  if (!file.file().seek(offset, SeekSet)) {
+    m_logger.log(yal::Level::ERROR, "Failed to seek to position %", offset);
+    return false;
+  }
+
+  std::vector<uint8_t> fileContent;
+  fileContent.reserve(size);
+  const auto readSize = file.file().read(static_cast<uint8_t*>(fileContent.data()), size);
+  if (readSize != size) {
+    m_logger.log(yal::Level::ERROR, "Tried to read % bytes, received %", size, readSize);
+    return false;
+  }
+
+  static constexpr const auto md5Len = 16;
+  std::array<uint8_t, md5Len> fileMD5{};
+  decltype(fileMD5) dataMD5{};
+
+  const auto buildMD5 =
+    [&](const uint8_t* inData, unsigned int inSize, decltype(fileMD5)& outData) {
+      MD5Builder md5Builder{};
+      md5Builder.begin();
+      md5Builder.add(inData, inSize);
+      md5Builder.calculate();
+      md5Builder.getBytes(outData.data());
+    };
+
+  buildMD5(fileContent.data(), size, fileMD5);
+  buildMD5(data, size, dataMD5);
+
+  const auto equal = std::memcmp(fileMD5.data(), dataMD5.data(), md5Len);
+  return equal == 0;
+}
+
+bool WebServer::fileSystemWriteChunk(
+  unsigned int offset,
+  const uint8_t* data,
+  unsigned int size,
+  bool clearFile) const {
+  Configuration::FileHandle file(m_htmlIndex.c_str());
+
+  const auto mode = clearFile ? "w" : "a";
+  if (!file.open(mode)) {
+    m_logger.log(yal::Level::FATAL, "failed to open html index file");
+    return false;
+  }
+
+  if (!file.file().seek(offset)) {
+    m_logger.log(
+      yal::Level::FATAL, "failed to seek to offset % in html index file", offset);
+    return false;
+  }
+  if (file.file().write(data, size) != size) {
+    m_logger.log(yal::Level::FATAL, "failed write all bytes to html index file");
+    return false;
+  }
+
+  m_logger.log(
+    yal::Level::DEBUG, "updated html index at offset % with % bytes", offset, size);
+  return true;
 }
 
 void WebServer::reset(
@@ -139,35 +286,14 @@ void WebServer::reset(
 void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
   logMemory(m_logger);
   m_logger.log(yal::Level::DEBUG, "Received request for /");
-  static const auto indexStartLen = std::strlen(s_indexDataStart);
-  static const auto indexEndLen = std::strlen(s_indexDataEnd);
 
-  AsyncWebServerResponse* response = request->beginChunkedResponse(
+  LittleFS.begin();
+  request->send(
+    LittleFS,
+    m_htmlIndex,
     CONTENT_TYPE_HTML,
-    [&](uint8_t* buffer, size_t maxLen, size_t index) -> size_t {
-      if (index < indexStartLen) {
-        return chunkedResponseCopy(
-          index, maxLen, buffer, s_indexDataStart, indexStartLen);
-      }
-
-      if (index < (indexStartLen + m_containerDataUsed)) {
-        return chunkedResponseCopy(
-          index - indexStartLen,
-          maxLen,
-          buffer,
-          m_containerData.data(),
-          m_containerDataUsed);
-      }
-
-      return chunkedResponseCopy(
-        index - indexStartLen - m_containerDataUsed,
-        maxLen,
-        buffer,
-        s_indexDataEnd,
-        indexEndLen);
-    },
+    false,
     std::bind(&WebServer::templateCallback, this, std::placeholders::_1));
-  request->send(response);
 }
 
 size_t WebServer::chunkedResponseCopy(
@@ -233,8 +359,7 @@ bool WebServer::isCaptivePortal(AsyncWebServerRequest* request) {
   const auto hostHeader = request->getHeader("host")->value();
   const auto hostIsIp = isIp(hostHeader);
 
-  const auto captive =
-    !hostIsIp && ((hostHeader != m_hostname) || (hostHeader != m_hostname + ".local"));
+  const auto captive = !hostIsIp && (!hostHeader.startsWith(m_hostname));
   m_logger.log(
     yal::Level::TRACE,
     "Captivity Portal Check: "
