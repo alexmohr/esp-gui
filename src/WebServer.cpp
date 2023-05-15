@@ -15,11 +15,11 @@
 namespace esp_gui {
 
 static const constexpr char* const s_htmlIndexStart PROGMEM =
-  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin:.25em;font-size:1rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.input-group-text{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin-left:-.5em;z-index:-1;font-size:1rem;box-shadow:0 10px 20px -20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1.15rem;display:inline-block;width:85px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:262px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><div style=margin-top:10px><form action=/eraseConfig enctype=multipart/form-data id=formEraseConfig method=POST></form><form action=/ enctype=multipart/form-data id=formUpdateConfig method=POST></form><form action=/onClick enctype=multipart/form-data id=formOnClick method=POST></form></div><input class="btn btnLarge"form=formUpdateConfig type=submit value="Update settings & Reboot"> <input class="btn btnLarge"form=formEraseConfig type=submit value="Erase config"><div class="flex-container animated zoomIn">)";
+  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding-left:1rem;padding-right:1rem;height:50px;margin-bottom:.75em;font-size:.85rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1rem;display:inline-block;width:120px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:auto}.btnTop{margin-left:8px;margin-right:8px}.btnFlexContainer{width:290px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><div style=margin-top:10px><form action=/eraseConfig enctype=multipart/form-data id=formEraseConfig method=POST></form><form action=/ enctype=multipart/form-data id=formUpdateConfig method=POST></form><form action=/onClick enctype=multipart/form-data id=formOnClick method=POST></form></div><input class="btn btnLarge btnTop"form=formUpdateConfig type=submit value="Update settings & Reboot"> <input class="btn btnLarge btnTop"form=formEraseConfig type=submit value="Erase config"><div class="flex-container animated zoomIn">)";
 static const constexpr char* const s_htmlIndexEnd =
-  R"(</div><div class="animated flex-container zoomIn"style=margin:20px><div class=flex-card><div class=hero><h3>System</h3></div><div class=content><h3>Firmware update</h3><form action=/update enctype=multipart/form-data method=POST><input class="input inputLarge"type=file accept=.bin,.bin.gz name=firmware> <input class=btn type=submit value=Update></form></div></div></div></body></html>)";
-static const constexpr char* const s_htmlRedirect15s PROGMEM =
-  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=15;/ http-equiv=refresh><h1>Operation %s, reloading in 15 seconds...</h1>)";
+  R"(<div class=flex-card><div class=hero><h3>System</h3></div><div class=content><h3>Firmware update</h3><form action=/update enctype=multipart/form-data method=POST><input class="input inputLarge"type=file accept=.bin,.bin.gz name=firmware> <input class=btn type=submit value=Update></form></div></div></div></div></body></html>)";
+static const constexpr char* const s_htmlRedirectDelayed PROGMEM =
+  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Reloading in %redirect_seconds% seconds...</h1>)";
 
 void WebServer::setup(const String& hostname) {
   m_logger.log(
@@ -55,6 +55,18 @@ void WebServer::setup(const String& hostname) {
     if (!isCaptivePortal(request)) {
       rootHandleGet(request);
     }
+  });
+
+  m_asyncWebServer.on(rootPath, HTTP_GET, [this](AsyncWebServerRequest* request) {
+    if (!isCaptivePortal(request)) {
+      rootHandleGet(request);
+    }
+  });
+
+  m_asyncWebServer.on(s_redirectDelayedURL, HTTP_GET, [this](AsyncWebServerRequest* request) {
+    request->send_P(HTTP_OK, CONTENT_TYPE_HTML, s_htmlRedirectDelayed, [&](const String& templateString){
+      return String(m_redirectDelay.count());
+    });
   });
 
   static constexpr const char* updatePath = "/update";
@@ -277,7 +289,7 @@ void WebServer::makeButton(const Element* element, std::stringstream& ss) {
   ss <<
     "<label for=\"" << id << "\"></label>"
     "<input id=\"" << id
-      << R"(" class="btn btnLarge")"
+      << R"(" class="btn btnFlexContainer")"
       << "name=\"" << id << "\" "
       << "value=\"" << element->label().c_str() << "\" "
       << "form=\"formOnClick\" "
@@ -401,9 +413,6 @@ String WebServer::templateCallback(const String& templateString) {
       value.c_str());
     return m_config.value<String>(templ);
   }
-
-  String value;
-  return "not implemented";
 }
 
 String WebServer::listTemplate(
@@ -451,7 +460,7 @@ void WebServer::updateHandlePost(AsyncWebServerRequest* request) {
 
   const bool updateSuccess = !Update.hasError();
   AsyncResponseStream* const response = request->beginResponseStream(CONTENT_TYPE_HTML);
-  response->printf(s_htmlRedirect15s, updateSuccess ? "succeeded" : "failed");
+  response->printf(s_htmlRedirectDelayed, updateSuccess ? "succeeded" : "failed");
 
   if (updateSuccess) {
     reset(request, response);
@@ -505,9 +514,17 @@ void WebServer::onClick(AsyncWebServerRequest* const request) {
     m_logger.log(yal::Level::DEBUG, "Calling button %", param->name().c_str());
     auto button = findElement<ButtonElement>(param->name());
     button->click();
-  }
 
-  request->redirect("/");
+    if (button->delay() > 0s) {
+      m_redirectDelay = button->delay();
+      request->redirect(s_redirectDelayedURL);
+    } else {
+      request->redirect("/");
+    }
+
+    return;
+
+  }
 }
 
 bool WebServer::isCaptivePortal(AsyncWebServerRequest* request) {
