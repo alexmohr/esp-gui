@@ -286,7 +286,7 @@ class WebServer {
     AsyncWebServerRequest* request,
     const std::chrono::seconds& delay);
 
-  void reset(AsyncWebServerRequest* request);
+  void reset(AsyncWebServerRequest* request, const char* reason);
 
  private:
   AsyncWebServer m_asyncWebServer;
