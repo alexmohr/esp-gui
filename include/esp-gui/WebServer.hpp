@@ -16,7 +16,7 @@
 
 namespace esp_gui {
 
-enum class ElementType { STRING, PASSWORD, INT, DOUBLE };
+enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON };
 
 class Element {
  public:
@@ -26,6 +26,8 @@ class Element {
       m_configName(std::move(configName)),
       m_readOnly(isReadOnly) {
   }
+
+  virtual ~Element() = default;
 
   [[nodiscard]] const String& label() const {
     return m_label;
@@ -50,9 +52,70 @@ class Element {
   const bool m_readOnly;
 };
 
+class ListElement : public Element {
+ public:
+  ListElement(
+    std::vector<String> options,
+    String label,
+    String configName,
+    bool isReadOnly = false) :
+      Element(ElementType::LIST, std::move(label), std::move(configName), isReadOnly),
+      m_options(std::move(options)) {
+  }
+
+  virtual ~ListElement() = default;
+
+  void addOption(const String& option) {
+    m_options.push_back(option);
+  }
+
+  void clearOptions() {
+    m_options.clear();
+  }
+
+  void setOptions(std::vector<String>&& options) {
+    m_options = options;
+  }
+
+  [[nodiscard]] const std::vector<String>& options() const {
+    return m_options;
+  }
+
+  [[nodiscard]] int selectedIdx() const {
+    return m_selectedIdx;
+  }
+
+  void setSelectedIdx(int val) {
+    m_selectedIdx = val;
+  }
+
+ private:
+  std::vector<String> m_options;
+  int m_selectedIdx;
+};
+
+class ButtonElement : public Element {
+ public:
+  using OnClick = std::function<void()>;
+
+  ButtonElement(String label, String configName, OnClick&& onClick) :
+      Element(ElementType::BUTTON, std::move(label), std::move(configName), true),
+      m_onClick(std::move(onClick)) {
+  }
+
+  virtual ~ButtonElement() = default;
+
+  void click() {
+    if (m_onClick) m_onClick();
+  }
+
+ private:
+  OnClick m_onClick;
+};
+
 class Container {
  public:
-  Container(String title, std::vector<Element>&& elements) :
+  Container(String title, std::vector<std::any>&& elements) :
       m_title(std::move(title)), m_elements(elements) {
   }
 
@@ -60,29 +123,26 @@ class Container {
     return m_title;
   }
 
-  [[nodiscard]] const std::vector<Element>& elements() const {
+  [[nodiscard]] std::vector<std::any>& elements() {
     return m_elements;
   }
 
+  // todo add safe method to add elements so unsupported types can't be passed
+
  private:
   const String m_title;
-  const std::vector<Element> m_elements;
+  std::vector<std::any> m_elements;
 };
 
 class WebServer {
  public:
   WebServer(int port, const char* const hostname, Configuration& config) :
       m_asyncWebServer(AsyncWebServer(port)), m_hostname("default"), m_config(config) {
-    addWifiContainers();
   }
 
   WebServer(const WebServer&) = delete;
 
   void setup(const String& hostname);
-
-  void setApList(std::vector<String>&& apList) {
-    m_accessPointList = std::move(apList);
-  }
 
   void setPageTitle(const String& title) {
     m_config.setValue("page_title", title);
@@ -90,20 +150,26 @@ class WebServer {
 
   void addContainer(Container&& container);
 
+  template<typename T>
+  T* findElement(const String& key) {
+    const auto iter = m_elementMap.find(key);
+    if (iter == m_elementMap.end()) {
+      return nullptr;
+    }
+    return std::any_cast<T>(iter->second);
+  }
+
  private:
   AsyncWebServer m_asyncWebServer;
 
   String m_hostname;
-  std::vector<String> m_accessPointList;
   yal::Logger m_logger = yal::Logger("WEB");
   Configuration& m_config;
 
   std::vector<Container> m_container;
-  size_t m_containerDataUsed = 0U;
+  std::map<String, std::any*> m_elementMap;
 
-  String m_cfgWifiSsid = "wifi_ssid";
-  String m_cfgWifiPassword = "wifi_password";
-  String m_cfgWifiHostname = "wifi_hostname";
+  static inline const String m_listSuffix = "___list";
 
   const String m_htmlIndex = "/index.html";
 
@@ -127,7 +193,12 @@ class WebServer {
     size_t len,
     bool final);
   void eraseConfig(AsyncWebServerRequest* request);
+  void onClick(AsyncWebServerRequest* request);
   [[nodiscard]] String templateCallback(const String& templateString);
+  [[nodiscard]] String listTemplate(
+    const String& templ,
+    const ListElement* listValue,
+    bool isListValue);
 
   enum class WriteAndCheckResult {
     SUCCESS,
@@ -137,6 +208,20 @@ class WebServer {
 
   [[nodiscard]] bool containerSetupDone();
   [[nodiscard]] WriteAndCheckResult checkAndWriteHTML(bool writeFS);
+  static void makeInput(
+    const Element* element,
+    const String& elementValue,
+    const String& inputType,
+    std::stringstream& ss);
+
+  static void makeSelect(
+    const Element* element,
+    const String& elementValue,
+    const String& inputType,
+    std::stringstream& ss);
+
+  static void makeButton(const Element* element, std::stringstream& ss);
+
   [[nodiscard]] bool fileSystemAndDataChunksEqual(
     unsigned int offset,
     const uint8_t* data,
@@ -147,19 +232,13 @@ class WebServer {
     unsigned int size,
     bool clearFile) const;
 
-  size_t chunkedResponseCopy(
-    size_t index,
-    size_t maxLen,
-    uint8_t* dst,
-    const char* const source,
-    size_t sourceLength);
-
   [[nodiscard]] bool isCaptivePortal(AsyncWebServerRequest* pRequest);
   void onNotFound(AsyncWebServerRequest* request);
 
   void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
   [[nodiscard]] static bool isIp(const String& str);
-  void addWifiContainers();
+
+  [[nodiscard]] Element* anyToElement(std::any& any);
 };
 }  // namespace esp_gui
 

@@ -175,18 +175,13 @@
 </div>
 <div>
 
-<form method='POST' style="margin-left: 20px; margin-top: 20px; margin-bottom: -20px" action='/eraseConfig'
-      enctype='multipart/form-data'>
-    <input type='submit' value="Erase config"
-           class="btn btnLarge">
-</form>
+<div style="margin-top: 10px">
+    <form id="formEraseConfig" action=/eraseConfig enctype=multipart/form-data method=POST></form>
+    <form id="formUpdateConfig" action=/ enctype=multipart/form-data method=POST></form>
+    <form id="formOnClick" action=/onClick enctype=multipart/form-data method=POST></form>
+</div>
 
+<input class="btn btnLarge" type=submit value="Update settings & Reboot" form="formUpdateConfig" />
+<input class="btn btnLarge" type=submit value="Erase config" form="formEraseConfig">
 
-<form method='POST' style="margin: 20px" action='/'
-      enctype='multipart/form-data'>
-
-    <input type='submit' value="Update settings & Reboot"
-           class="btn btnLarge">
-
-    <!-- Wifi configuration will always be added -->
-    <div class="flex-container animated zoomIn">
+<div class="flex-container animated zoomIn">

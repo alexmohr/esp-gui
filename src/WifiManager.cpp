@@ -21,6 +21,14 @@ void WifiManager::setup(bool showConfigPortal) {
   checkWifi();
 }
 
+void WifiManager::loop() {
+  if (m_shouldScan) {
+    m_shouldScan = false;
+    setApList();
+    connectMultiWiFi(true);
+  }
+}
+
 bool WifiManager::loadAPsFromConfig() {
   // Don't permit NULL SSID and password len < // MIN_AP_PASSWORD_SIZE (8)
   const auto ssid = m_config.value<std::string>("wifi_ssid");
@@ -45,7 +53,6 @@ bool WifiManager::loadAPsFromConfig() {
 }
 
 [[noreturn]] bool WifiManager::showConfigurationPortal() {
-  auto accessPoints = getApList();
   m_logger.log(yal::Level::DEBUG, "Starting access point");
 
   DNSServer dnsServer;
@@ -69,7 +76,8 @@ bool WifiManager::loadAPsFromConfig() {
 
   m_logger.log(yal::Level::DEBUG, "Starting Config Portal");
   m_webServer.setup(hostname);
-  m_webServer.setApList(std::move(accessPoints));
+
+  setApList();
 
   m_logger.log(
     yal::Level::INFO,
@@ -87,19 +95,25 @@ bool WifiManager::loadAPsFromConfig() {
   }
 }
 
-std::vector<String> WifiManager::getApList() const {
+void WifiManager::setApList() const {
   m_logger.log(yal::Level::DEBUG, "Searching for available networks");
-  WiFi.mode(WIFI_STA);
-  WiFi.disconnect();
-  const auto apCount = WiFi.scanNetworks();
-  std::vector<String> accessPoints;
-  for (auto i = 0; i < apCount; ++i) {
-    const auto ssid = WiFi.SSID(i);
-    m_logger.log(yal::Level::DEBUG, "Found SSID '%'", ssid.c_str());
-    accessPoints.push_back(ssid);
+
+  const auto ssidElement = m_webServer.findElement<ListElement>(m_cfgWifiSsid);
+  if (nullptr == ssidElement) {
+    return;
   }
 
-  return accessPoints;
+  WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
+  delay(100);
+
+  int8_t networksFound = WiFi.scanNetworks();
+  for (int8_t i = 0; i < networksFound; i++) {
+    const auto ssid = WiFi.SSID(i);
+    m_logger.log(yal::Level::DEBUG, "Found SSID '%'", ssid.c_str());
+
+    ssidElement->addOption(ssid);
+  }
 }
 
 bool WifiManager::checkWifi() {
@@ -181,7 +195,7 @@ wl_status_t WifiManager::connectMultiWiFi(bool useFastConfig) {
 bool WifiManager::getFastConnectConfig(const String& ssid, fastConfig& config) {
   // adopted from
   // https://github.com/roberttidey/WiFiManager/blob/feature_fastconnect/WiFiManager.cpp
-  int networksFound = WiFi.scanNetworks();
+  int8_t networksFound = WiFi.scanNetworks();
   int32_t scan_rssi = -200;
   for (auto i = 0; i < networksFound; i++) {
     if (ssid == WiFi.SSID(i)) {
@@ -193,6 +207,26 @@ bool WifiManager::getFastConnectConfig(const String& ssid, fastConfig& config) {
     }
   }
   return false;
+}
+
+void WifiManager::addWifiContainers() {
+  std::vector<std::any> elements;
+  elements.emplace_back(esp_gui::ListElement({}, String("SSID"), m_cfgWifiSsid));
+
+  esp_gui::ButtonElement::OnClick onScanClick = [&]() {
+    m_shouldScan = true;
+  };
+
+  elements.emplace_back(esp_gui::ButtonElement(
+    String("Scan Wifi (will disconnect Wifi)"), m_scanWifiButton, std::move(onScanClick)));
+
+  elements.emplace_back(esp_gui::Element(
+    esp_gui::ElementType::PASSWORD, String("Password"), m_cfgWifiPassword));
+  elements.emplace_back(esp_gui::Element(
+    esp_gui::ElementType::STRING, String("Hostname"), m_cfgWifiHostname));
+
+  esp_gui::Container wifiSettings("WIFI Settings", std::move(elements));
+  m_webServer.addContainer(std::move(wifiSettings));
 }
 
 }  // namespace esp_gui
