@@ -60,16 +60,17 @@ void WebServer::addToContainerData(const char* const data) {
 
   m_logger.log(
     yal::Level::INFO,
-    "Container RAM usage: % of % bytes (% %)",
+    "Container RAM usage: % of % bytes (%)",
     m_containerDataUsed,
     m_containerData.size(),
-    (m_containerDataUsed / m_containerData.size()) * 100);
+    (static_cast<float>(m_containerDataUsed) / static_cast<float>(m_containerData.size())) * 100.0F);
 }
 
 void WebServer::containerSetupDone() {
   // todo support lists
-  size_t id = 0;
-  for (auto& container : m_container) {
+
+  for (int containerIdx = 0; containerIdx < m_container.size(); ++containerIdx) {
+    auto& container = m_container.at(containerIdx);
     static const constexpr auto containerStart PROGMEM =
       R"(<div class="flex-card"><div class="hero">)";
     addToContainerData(containerStart);
@@ -83,29 +84,30 @@ void WebServer::containerSetupDone() {
       R"(</h3></div><div class="content">)";
     addToContainerData(containerClass);
 
-    for (const auto& element : container.elements()) {
-      const auto strId =
-        container.title() + "_Element_" + element.label() + "_" + String(id++);
+    for (int elementIdx = 0; elementIdx < container.elements().size(); ++elementIdx) {
+      const auto element = container.elements().at(elementIdx);
+      const auto& strId = element.configName();
 
       // todo catch std::any cast errors
       // todo support lists
-      String elementValue;
+      String elementValue = "%" + element.configName() + "%";
       String elementHTMLType;
       switch (element.type()) {
         case ElementType::STRING:
-          elementValue = std::any_cast<String>(element.value());
+
+           // std::any_cast<String>(element.value());
           elementHTMLType = "text";
           break;
         case ElementType::STRING_PASSWORD:
-          elementValue = std::any_cast<String>(element.value());
+         // elementValue = std::any_cast<String>(element.value());
           elementHTMLType = "password";
           break;
         case ElementType::INT:
-          elementValue = String(std::any_cast<int>(element.value()));
+         // elementValue = String(std::any_cast<int>(element.value()));
           elementHTMLType = "number";
           break;
         case ElementType::DOUBLE:
-          elementValue = String(std::any_cast<double>(element.value()));
+         // elementValue = String(std::any_cast<double>(element.value()));
           elementHTMLType = "number";
           break;
       }
@@ -147,7 +149,7 @@ void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
         return chunkedResponseCopy(
           index, maxLen, buffer, s_indexDataStart, indexStartLen);
       }
-      // todo this is basically the same as the if before w/ different indices
+
       if (index < (indexStartLen + m_containerDataUsed)) {
         return chunkedResponseCopy(
           index - indexStartLen,
@@ -179,12 +181,6 @@ size_t WebServer::chunkedResponseCopy(
   if (idxBytesLeft == 0) {
     return 0;
   }
-  m_logger.log(
-    yal::Level::DEBUG,
-    "STATIC HTML END, globalIndex: %, bytesCopied %, maxlen %",
-    index,
-    bytesCopied,
-    maxLen);
   memcpy(dst, source + index, bytesCopied);
 
   return bytesCopied;
@@ -206,15 +202,27 @@ void WebServer::rootHandlePost(AsyncWebServerRequest* const request) {
     const auto param = request->getParam(i);
     m_logger.log(
       yal::Level::DEBUG,
-      "Updating param % to value ",
+      "Updating param '%' to value '%'",
       param->name().c_str(),
       param->value().c_str());
-    m_config.setValue(param->name(), param->value());
+
+    m_config.setValue(param->name(), param->value(), false);
   }
+
+  m_config.store();
+
+  request->send(
+    HTTP_OK,
+    CONTENT_TYPE_HTML,
+    "<html><head><title>200</title></head><body><h1>OK</h1></body>");
 }
 
 void WebServer::eraseConfig(AsyncWebServerRequest* const request) {
-  m_config.reset();
+  m_config.reset(true);
+  request->send(
+    HTTP_NOT_FOUND,
+    CONTENT_TYPE_HTML,
+    "<html><head><title>200</title></head><body><h1>OK</h1></body>");
 }
 
 bool WebServer::isCaptivePortal(AsyncWebServerRequest* request) {

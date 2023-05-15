@@ -15,7 +15,7 @@
 namespace esp_gui {
 class Configuration {
  public:
-  Configuration() : m_config(DynamicJsonDocument(data.size())) {
+  Configuration() : m_config(DynamicJsonDocument(m_jsonData.size())) {
   }
   Configuration(Configuration&) = delete;
   Configuration(Configuration&&) = delete;
@@ -29,36 +29,46 @@ class Configuration {
 
   template<typename T>
   T value(const String& key) {
-    m_logger.log(yal::Level::DEBUG, "Retriving configuration key %", key.c_str());
+    m_logger.log(yal::Level::DEBUG, "Retrieving configuration key %", key.c_str());
     logConfig();
 
-    return m_config[key.c_str()];
-    ;
+    return m_config[key];
   }
 
   template<typename T>
-  void setValue(const String& key, T value) {
-    m_logger.log(yal::Level::DEBUG, "Set %", key.c_str());
-    logConfig();
+  void setValue(const String& key, T value, bool persist = false) {
+    logKV(key, value);
 
     if (m_config[key] == value) {
       m_logger.log(yal::Level::DEBUG, "skipping set, value already in config");
       return;
     }
     m_config[key] = value;
-    store();
+    logConfig();
+    if (persist) {
+      store();
+    }
   }
 
   void setup();
   void store();
-  void reset();
+  void reset(bool persist);
 
  private:
+  template<typename T>
+  void logKV(const String& key, T val) {
+    m_logger.log(yal::Level::DEBUG, "Set '%' to '%'", key.c_str(), val);
+  }
+
+  void logKV(const String& key, String val) {
+    m_logger.log(yal::Level::DEBUG, "Set '%' to '%'", key.c_str(), val.c_str());
+  }
+
   yal::Logger m_logger = yal::Logger("CONFIG");
   DynamicJsonDocument m_config;
   static constexpr const char* m_configFile = "/esp-gui-config.dat";
 
-  std::array<uint8_t, 128> data;  // todo move outside
+  std::array<uint8_t, 2048> m_jsonData;  // todo move outside
 };
 }  // namespace esp_gui
 #endif  // ESP_GUI_CONFIGURATION_HPP

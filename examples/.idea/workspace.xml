@@ -19,9 +19,13 @@
   <component name="ChangeListManager">
     <list default="true" id="c76e7dda-a9eb-4718-a489-fbe6aa5ca848" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/platformio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/platformio.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../include/esp-gui/Configuration.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/Configuration.hpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/Configuration.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/Configuration.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/WebServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WebServer.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../src/html/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../src/WifiManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WifiManager.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -100,7 +104,8 @@
       <updated>1654458582193</updated>
       <workItem from="1654458584948" duration="7399000" />
       <workItem from="1654507924633" duration="33012000" />
-      <workItem from="1654614430854" duration="7964000" />
+      <workItem from="1654614430854" duration="8276000" />
+      <workItem from="1655225913680" duration="7517000" />
     </task>
     <servers />
   </component>
@@ -117,16 +122,5 @@
         </entry>
       </map>
     </option>
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/../src/Configuration.cpp</url>
-          <line>13</line>
-          <option name="timeStamp" value="4" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
 </project>
