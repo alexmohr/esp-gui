@@ -210,22 +210,14 @@ bool WifiManager::getFastConnectConfig(const String& ssid, fastConfig& config) {
 }
 
 void WifiManager::addWifiContainers() {
-  std::vector<std::any> elements;
-  elements.emplace_back(esp_gui::ListElement({}, String("SSID"), m_cfgWifiSsid));
+  esp_gui::Container wifiSettings("WIFI Settings");
+  wifiSettings.addList({}, String("SSID"), m_cfgWifiSsid);
+  wifiSettings.addButton(
+    "Scan Wifi", m_scanWifiButton, [&]() { m_shouldScan = true; }, 15s);
 
-  esp_gui::ButtonElement::OnClick onScanClick = [&]() {
-    m_shouldScan = true;
-  };
+  wifiSettings.addInput(InputElementType::PASSWORD, "Password", m_cfgWifiPassword);
+  wifiSettings.addInput(InputElementType::STRING, String("Hostname"), m_cfgWifiHostname);
 
-  elements.emplace_back(esp_gui::ButtonElement(
-    String("Scan Wifi"), m_scanWifiButton, std::move(onScanClick), 15s));
-
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::PASSWORD, String("Password"), m_cfgWifiPassword));
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::STRING, String("Hostname"), m_cfgWifiHostname));
-
-  esp_gui::Container wifiSettings("WIFI Settings", std::move(elements));
   m_webServer.addContainer(std::move(wifiSettings));
 }
 

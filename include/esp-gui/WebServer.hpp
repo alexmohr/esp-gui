@@ -14,11 +14,13 @@
 #include <yal/yal.hpp>
 #include <any>
 #include <chrono>
+#include <utility>
 
 namespace esp_gui {
 
 using std::chrono_literals::operator""s;
 
+enum class InputElementType { STRING, PASSWORD, INT, DOUBLE };
 enum class ElementType { STRING, PASSWORD, INT, DOUBLE, LIST, BUTTON, UPLOAD };
 
 class Element {
@@ -55,6 +57,32 @@ class Element {
   const bool m_readOnly;
 };
 
+class InputElement : public Element {
+ public:
+  InputElement(
+    InputElementType type,
+    String label,
+    String configName,
+    bool isReadOnly = false) :
+      Element(convert(type), std::move(label), std::move(configName), isReadOnly) {
+  }
+
+ private:
+  static ElementType convert(const InputElementType& t) {
+    switch (t) {
+      case InputElementType::PASSWORD:
+        return ElementType::PASSWORD;
+      case InputElementType::INT:
+        return ElementType::INT;
+      case InputElementType::DOUBLE:
+        return ElementType::DOUBLE;
+      case InputElementType::STRING:
+      default:
+        return ElementType::STRING;
+    }
+  }
+};
+
 class ListElement : public Element {
  public:
   ListElement(
@@ -66,7 +94,7 @@ class ListElement : public Element {
       m_options(std::move(options)) {
   }
 
-  ~ListElement() override  = default;
+  ~ListElement() override = default;
 
   void addOption(const String& option) {
     m_options.push_back(option);
@@ -84,35 +112,31 @@ class ListElement : public Element {
     return m_options;
   }
 
-  [[nodiscard]] int selectedIdx() const {
-    return m_selectedIdx;
-  }
-
-  void setSelectedIdx(int val) {
-    m_selectedIdx = val;
-  }
-
  private:
   std::vector<String> m_options;
-  int m_selectedIdx;
 };
 
 class ButtonElement : public Element {
  public:
   using OnClick = std::function<void()>;
 
-  ButtonElement(String label, String configName, OnClick&& onClick, std::chrono::seconds delayBeforeRedirect = 0s) :
+  ButtonElement(
+    String label,
+    String configName,
+    OnClick&& onClick,
+    std::chrono::seconds delayBeforeRedirect = 0s) :
       Element(ElementType::BUTTON, std::move(label), std::move(configName), true),
-      m_onClick(std::move(onClick)), m_delay(delayBeforeRedirect) {
+      m_onClick(std::move(onClick)),
+      m_delay(delayBeforeRedirect) {
   }
 
   ~ButtonElement() override = default;
 
-  void click() {
+  void click() const {
     if (m_onClick) m_onClick();
   }
 
-  [[nodiscard]] std::chrono::seconds delay() {
+  [[nodiscard]] std::chrono::seconds delay() const {
     return m_delay;
   }
 
@@ -130,9 +154,9 @@ class UploadElement : public Element {
       m_onClick(std::move(onClick)) {
   }
 
-  virtual ~UploadElement() = default;
+  ~UploadElement() override = default;
 
-  void click() {
+  void click() const {
     if (m_onClick) m_onClick();
   }
 
@@ -142,8 +166,7 @@ class UploadElement : public Element {
 
 class Container {
  public:
-  Container(String title, std::vector<std::any>&& elements) :
-      m_title(std::move(title)), m_elements(elements) {
+  explicit Container(String title) : m_title(std::move(title)), m_elements({}) {
   }
 
   [[nodiscard]] const String& title() const {
@@ -154,7 +177,37 @@ class Container {
     return m_elements;
   }
 
-  // todo add safe method to add elements so unsupported types can't be passed
+  void addList(
+    std::vector<String> options,
+    String label,
+    String configName,
+    bool isReadOnly = false) {
+    m_elements.emplace_back(ListElement(
+      std::move(options), std::move(label), std::move(configName), isReadOnly));
+  }
+
+  void addButton(
+    String label,
+    String configName,
+    ButtonElement::OnClick&& onClick,
+    std::chrono::seconds delayBeforeRedirect = 0s) {
+    m_elements.emplace_back(ButtonElement(
+      std::move(label), std::move(configName), std::move(onClick), delayBeforeRedirect));
+  }
+
+  void addInput(
+    InputElementType type,
+    String label,
+    String configName,
+    bool isReadOnly = false) {
+    m_elements.emplace_back(
+      InputElement(type, std::move(label), std::move(configName), isReadOnly));
+  }
+
+  void addUpload(String label, String configName, UploadElement::OnClick&& onClick) {
+    m_elements.emplace_back(
+      UploadElement(std::move(label), std::move(configName), std::move(onClick)));
+  }
 
  private:
   const String m_title;
@@ -268,7 +321,7 @@ class WebServer {
   void reset(AsyncWebServerRequest* request, AsyncResponseStream* response);
   [[nodiscard]] static bool isIp(const String& str);
 
-  [[nodiscard]] Element* anyToElement(std::any& any);
+  [[nodiscard]] static Element* anyToElement(std::any& any);
 };
 }  // namespace esp_gui
 

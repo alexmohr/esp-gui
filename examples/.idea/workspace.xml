@@ -21,9 +21,9 @@
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/src/main.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" beforeDir="false" afterPath="$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../platformio.ini" beforeDir="false" afterPath="$PROJECT_DIR$/../platformio.ini" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/WebServer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WebServer.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../src/WifiManager.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/../src/WifiManager.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../src/html/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../src/html/index.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -35,19 +35,24 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
   </component>
   <component name="HighlightingSettingsPerFile">
+    <setting file="file://$USER_HOME$/.platformio/packages/framework-arduinoespressif8266/cores/esp8266/Updater.h" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../.pio/libdeps/nodemcuv2/ESP Async WebServer/src/WebRequest.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/.pio/libdeps/nodemcuv2/ESP Async WebServer/src/ESPAsyncWebServer.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/platformio.ini" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/src/main.cpp" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/../include/esp-gui/Configuration.hpp" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/../include/esp-gui/WebServer.hpp" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/../include/esp-gui/WifiManager.hpp" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/../src/WebServer.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../src/WifiManager.cpp" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../heat2/.pio/libdeps/esp32/ESP Async WebServer/src/ESPAsyncWebServer.h" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/../../heat2/.pio/libdeps/esp32/ESP Async WebServer/src/WebHandlerImpl.h" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="0sglqygx" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
-  </component>
-  <component name="OCResolveContextSettings">
-    <option name="configuration" value="1-nodemcuv2-Z_DUMMY_TARGET" />
   </component>
   <component name="ProjectApplicationVersion">
     <option name="ide" value="CLion" />
@@ -120,6 +125,8 @@
       <workItem from="1656942355949" duration="3528000" />
       <workItem from="1656951463506" duration="1421000" />
       <workItem from="1656956571297" duration="1174000" />
+      <workItem from="1657021238157" duration="1160000" />
+      <workItem from="1657462399659" duration="3340000" />
     </task>
     <servers />
   </component>

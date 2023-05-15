@@ -33,33 +33,23 @@ void setup() {
   m_config.setValue(m_demoInt, 42);
   m_config.setValue(m_demoString, "ESP-GUI <3");
 
+  esp_gui::Container demoContainer("Demo");
+  demoContainer.addInput(esp_gui::InputElementType::INT, String("Demo int"), m_demoInt);
+  demoContainer.addInput(
+    esp_gui::InputElementType::STRING, String("Demo String"), m_demoString);
+  demoContainer.addList(
+    {"option 1", "hello", "world"}, String("Demo String"), m_demoList);
 
-  std::vector<std::any> elements;
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::INT, String("Demo int"), m_demoInt));
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::STRING, String("Demo String"), m_demoString));
-
-  elements.emplace_back(
-    esp_gui::ListElement({"option 1", "hello", "world"}, String("Demo String"), m_demoList));
-
-  elements.emplace_back(
-    esp_gui::ButtonElement(String("Append list item"), m_demoButton, []{
-      const auto list = m_server.findElement<esp_gui::ListElement>(m_demoList);
-      if (list == nullptr) {
-        return;
-      }
-      list->addOption("dynamic list item" + String(++m_listIdx));
-    }));
-
-
-  esp_gui::Container demoContainer("Demo", std::move(elements));
-
+  demoContainer.addButton(String("Append list item"), m_demoButton, [] {
+    const auto list = m_server.findElement<esp_gui::ListElement>(m_demoList);
+    if (list == nullptr) {
+      return;
+    }
+    list->addOption("dynamic list item" + String(++m_listIdx));
+  });
 
   m_server.addContainer(std::move(demoContainer));
-
   m_wifiMgr.setup(false);
-
   m_server.setup(m_config.value<String>("wifi_hostname"));
 }
 
