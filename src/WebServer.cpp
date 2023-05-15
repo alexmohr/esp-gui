@@ -14,12 +14,12 @@
 namespace esp_gui {
 
 static const constexpr char* const s_htmlIndexStart PROGMEM =
-  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding-left:1rem;padding-right:1rem;height:50px;margin-bottom:.75em;font-size:.85rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1rem;display:inline-block;width:120px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:auto}.btnTop{margin-left:8px;margin-right:8px}.btnFlexContainer{width:290px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><div style=margin-top:10px><form action=/eraseConfig enctype=multipart/form-data id=formEraseConfig method=POST></form><form action=/ enctype=multipart/form-data id=formUpdateConfig method=POST></form><form action=/onClick enctype=multipart/form-data id=formOnClick method=POST></form></div><input class="btn btnLarge btnTop"form=formUpdateConfig type=submit value="Update settings & Reboot"> <input class="btn btnLarge btnTop"form=formEraseConfig type=submit value="Erase config"><div class="flex-container animated zoomIn">)";
+  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding-left:1rem;padding-right:1rem;height:50px;margin-bottom:.75em;font-size:.85rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}.otherLarge{width:290px}label{margin-right:1em;font-size:1rem;display:inline-block;width:120px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:auto}.btnTop{margin-left:8px;margin-right:8px}.btnFlexContainer{width:290px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><div style=margin-top:10px><form action=/eraseConfig enctype=multipart/form-data id=formEraseConfig method=POST></form><form action=/reboot enctype=multipart/form-data id=formReboot method=POST></form><form action=/ enctype=multipart/form-data id=formUpdateConfig method=POST></form><form action=/onClick enctype=multipart/form-data id=formOnClick method=POST></form></div><input class="btn btnLarge btnTop"form=formUpdateConfig type=submit value="Update settings"> <input class="btn btnLarge btnTop"form=formReboot type=submit value=Reboot> <input class="btn btnLarge btnTop"form=formEraseConfig type=submit value="Erase config"><div class="flex-container animated zoomIn">)";
 static const constexpr char* const s_htmlIndexEnd = R"(</div></div></body></html>)";
 static const constexpr char* const s_htmlRedirectDelayed PROGMEM =
   R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Reloading in %redirect_seconds% seconds...</h1>)";
 static const constexpr char* const s_htmlRedirectReset PROGMEM =
-  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Resetting ESP8266</h1><h2>reason<h2><p>%s</p>)";
+  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Resetting ESP8266</h1><h2>Reason:<h2><p>%s</p>)";
 
 void WebServer::setup(const String& hostname) {
   m_logger.log(
@@ -48,6 +48,10 @@ void WebServer::setup(const String& hostname) {
 
   m_asyncWebServer.on(
     "/onClick", HTTP_POST, std::bind(&WebServer::onClick, this, std::placeholders::_1));
+
+  m_asyncWebServer.on("/reboot", HTTP_POST, [this](AsyncWebServerRequest* request) {
+    reset(request, "User requested reboot");
+  });
 
   m_asyncWebServer.onNotFound(
     std::bind(&WebServer::onNotFound, this, std::placeholders::_1));
@@ -180,8 +184,11 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
           makeButton(element, ss);
           break;
         case ElementType::LIST:
+          makeDatalist(element, elementValue, "text", ss);
+          break;
+        case ElementType::DROPDOWN:
           makeSelect(element, elementValue, "text", ss);
-          continue;
+          break;
         case ElementType::STRING:
           makeInput(element, elementValue, "text", ss);
           break;
@@ -256,13 +263,13 @@ void WebServer::makeInput(
   // clang-format on
 }
 
-void WebServer::makeSelect(
+void WebServer::makeDatalist(
   const Element* element,
   const String& elementValue,
   const String& inputType,
   std::stringstream& ss) {
   const auto& id = element->configName().c_str();
-  const auto listId = (id + m_listSuffix);
+  const auto listId = (id + m_optionSuffix);
   // clang-format off
   ss <<
     "<label for=\"" << id << "\">" << element->label().c_str() << "</label>"
@@ -273,12 +280,32 @@ void WebServer::makeSelect(
       << "type=\"" << inputType.c_str() << "\" "
       << "list=\"" << listId.c_str() << "\" "
       << "form=\"formUpdateConfig\" "
-      << ">"
+      << "/>"
     << "<datalist id=\"" << listId.c_str() << "\">"
     << "%" << listId.c_str() << "%"
     << "</datalist>"
-    << "</input>"
     << "<br/>";
+  // clang-format on
+}
+
+void WebServer::makeSelect(
+  const Element* element,
+  const String& elementValue,
+  const String& inputType,
+  std::stringstream& ss) {
+  const auto& id = element->configName().c_str();
+  const auto optionId = (id + m_optionSuffix);
+  // clang-format off
+    ss <<
+       "<label for=\"" << id << "\">" << element->label().c_str() << "</label>"
+       "<select id=\"" << id
+       << R"(" class="otherLarge")"
+       << "name=\"" << id << "\" "
+       << "type=\"" << inputType.c_str() << "\" "
+       << "form=\"formUpdateConfig\" >"
+       << "%" << optionId.c_str() << "%"
+       << "</select>"
+       << "<br/>";
   // clang-format on
 }
 
@@ -288,7 +315,7 @@ void WebServer::makeButton(const Element* element, std::stringstream& ss) {
   ss <<
     "<label for=\"" << id << "\"></label>"
     "<input id=\"" << id
-      << R"(" class="btn btnFlexContainer")"
+      << R"(" class="btn btnFlexContainer otherLarge")"
       << "name=\"" << id << "\" "
       << "value=\"" << element->label().c_str() << "\" "
       << "form=\"formOnClick\" "
@@ -331,7 +358,11 @@ void WebServer::makeUpload(const Element* element, std::stringstream& ss) {
         << "id=\"" << browseId << "\" "
         << "name=\"" << browseId << "\">"
       << "<label for=\"" << id << "\"></label>"
-      << "<input type='submit' value='Update' class=\"btn btnFlexContainer\""
+      << "<br/>"
+      // dummy label to indent button
+      << "<label for=\"" << browseId << "\">"
+      << "</label>"
+      << "<input type='submit' value='Upload' class=\"btn btnFlexContainer\""
         << "id=\"" << id << "\">"
     << "</form>"
     << "<br>";
@@ -438,14 +469,17 @@ void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
 String WebServer::templateCallback(const String& templateString) {
   String templ = templateString;
   bool getDataList = false;
-  if (templ.endsWith(m_listSuffix)) {
+  if (templ.endsWith(m_optionSuffix)) {
     getDataList = true;
-    templ.remove(templ.length() - m_listSuffix.length(), m_listSuffix.length());
+    templ.remove(templ.length() - m_optionSuffix.length(), m_optionSuffix.length());
   }
 
   const auto listValue = findElement<ListElement>(templ);
+  const auto dropdownValue = findElement<DropDownElement>(templ);
   if (listValue != nullptr) {
-    return listTemplate(templ, listValue, getDataList);
+    return optionTemplate(templ, listValue, getDataList);
+  } else if (dropdownValue != nullptr) {
+    return optionTemplate(templ, dropdownValue, getDataList);
   } else {
     const auto value = m_config.value<String>(templ);
     m_logger.log(
@@ -457,21 +491,27 @@ String WebServer::templateCallback(const String& templateString) {
   }
 }
 
-String WebServer::listTemplate(
+String WebServer::optionTemplate(
   const String& templ,
-  const ListElement* listValue,
+  const ChoiceElementBase* listValue,
   bool getDataList) {
   if (!getDataList) {
     return m_config.value<String>(templ);
   }
 
   String value;
+  const auto selected = m_config.value<String>(listValue->configName());
   const auto& options = listValue->options();
   m_logger.log(yal::Level::DEBUG, "List has % options", options.size());
 
   for (const auto& option : options) {
     m_logger.log(yal::Level::DEBUG, "Adding select option %", option.c_str());
-    value += "<option value=\"" + option + "\">" + option + "</option>";
+    String selectedStr;
+    if (option == selected) {
+      selectedStr = "selected";
+    }
+    value +=
+      "<option value=\"" + option + "\" " + selectedStr + ">" + option + "</option>";
   }
   return value;
 }
@@ -573,6 +613,8 @@ Element* WebServer::anyToElement(std::any& any) {
     return std::any_cast<InputElement>(&any);
   } else if (std::type_index(typeid(UploadElement)) == any.type()) {
     return std::any_cast<UploadElement>(&any);
+  } else if (std::type_index(typeid(DropDownElement)) == any.type()) {
+    return std::any_cast<DropDownElement>(&any);
   }
 
   m_logger.log(yal::Level::ERROR, "failed to cast %", any.type().name());
