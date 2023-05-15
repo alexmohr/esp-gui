@@ -39,9 +39,6 @@ void setup() {
   esp_gui::Container powerUsage("Power usage", std::move(elements));
 
   m_server.addContainer(std::move(powerUsage));
-  if (!m_server.containerSetupDone()) {
-    m_logger.log(yal::Level::ERROR, "Failed to setup webinterface. reset esp!");
-  }
   esp_gui::WifiManager wifiMgr(m_config, m_server);
   wifiMgr.setup(false);
 
@@ -49,7 +46,7 @@ void setup() {
 }
 
 void loop() {
-    delay(1000);
-    int currentUsage = m_config.value<int>(m_powerUsage) ;
-    m_config.setValue(m_powerUsage, currentUsage+1);
+  delay(1000);
+  int currentUsage = m_config.value<int>(m_powerUsage);
+  m_config.setValue(m_powerUsage, currentUsage + 1);
 }

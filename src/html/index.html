@@ -190,27 +190,3 @@
 
     <!-- Wifi configuration will always be added -->
     <div class="flex-container animated zoomIn">
-        <div class="flex-card">
-            <div class="hero">
-                <h3>WiFi Configuration</h3>
-            </div>
-            <div class="content">
-                <label for="wifi_ssid">SSID</label>
-                <input class="inputLarge" id="wifi_ssid" name="wifi_ssid"
-                       list="wifi_networklist" type="text" value="%wifi_ssid%"/>
-
-                <datalist id="wifi_networklist">
-                    %wifi_networklist%
-                </datalist>
-                <br>
-                <label for="wifi_password">Password</label>
-                <input id="wifi_password" name="wifi_password" class="inputLarge"
-                       value="%wifi_password%"
-                       type="password"/>
-
-                <br>
-                <label for="wifi_hostname">Hostname</label>
-                <input id="wifi_hostname" class="inputLarge"
-                       name="wifi_hostname" value="%wifi_hostname%"/>
-            </div>
-        </div>
