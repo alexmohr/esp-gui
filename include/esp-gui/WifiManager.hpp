@@ -16,7 +16,9 @@ namespace esp_gui {
 class WifiManager {
  public:
   WifiManager(Configuration &config, WebServer &webServer) :
-      m_webServer(webServer), m_config(config), m_logger(yal::Logger("WIFI")){};
+      m_webServer(webServer), m_config(config), m_logger(yal::Logger("WIFI")) {
+    addWifiContainers();
+  };
 
   /**
    * Setup wifi by loading configuration from config or showing cfg portal
@@ -24,6 +26,8 @@ class WifiManager {
    */
   void setup(bool showConfigPortal);
   bool checkWifi();
+
+  void loop();
 
  private:
   struct fastConfig {
@@ -33,16 +37,24 @@ class WifiManager {
 
   [[noreturn]] bool showConfigurationPortal();
   bool loadAPsFromConfig();
-  [[nodiscard]] std::vector<String> getApList() const;
+  void setApList() const;
   static bool getFastConnectConfig(const String &ssid, fastConfig &config);
 
   wl_status_t connectMultiWiFi(bool useFastConfig);
+
+  void addWifiContainers();
 
   unsigned char m_reconnectCount = 0;
 
   WebServer &m_webServer;
   Configuration &m_config;
   yal::Logger m_logger;
+  bool m_shouldScan = false;
+
+  static inline const String m_cfgWifiSsid = "wifi_ssid";
+  static inline const String m_cfgWifiPassword = "wifi_password";
+  static inline const String m_cfgWifiHostname = "wifi_hostname";
+  static inline const String m_scanWifiButton = "wifi_button_scan";
 };
 
 }  // namespace esp_gui

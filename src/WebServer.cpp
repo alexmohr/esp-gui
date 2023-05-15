@@ -9,15 +9,17 @@
 #include <esp-gui/WebServer.hpp>
 #include <functional>
 #include <string>
+#include <typeindex>
 
 namespace esp_gui {
 
 static const constexpr char* const s_htmlIndexStart PROGMEM =
-  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin:.25em;font-size:1rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.input-group-text{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin-left:-.5em;z-index:-1;font-size:1rem;box-shadow:0 10px 20px -20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1.15rem;display:inline-block;width:85px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:262px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><form action=/eraseConfig enctype=multipart/form-data method=POST style=margin-left:20px;margin-top:20px;margin-bottom:-20px><input class="btn btnLarge"type=submit value="Erase config"></form><form action=/ enctype=multipart/form-data method=POST style=margin:20px><input class="btn btnLarge"type=submit value="Update settings & Reboot"><div class="flex-container animated zoomIn">)";
-static const constexpr char* const s_htmlIndexEnd =
-  R"(</div></form><div class="animated flex-container zoomIn"style=margin:20px><div class=flex-card><div class=hero><h3>System</h3></div><div class=content><h3>Firmware update</h3><form action=/update enctype=multipart/form-data method=POST><input class="input inputLarge"type=file accept=.bin,.bin.gz name=firmware> <input class=btn type=submit value=Update></form></div></div></div></body></html>)";
-static const constexpr char* const s_htmlRedirect15s PROGMEM =
-  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=15;/ http-equiv=refresh><h1>Operation %s, reloading in 15 seconds...</h1>)";
+  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding-left:1rem;padding-right:1rem;height:50px;margin-bottom:.75em;font-size:.85rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1rem;display:inline-block;width:120px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:auto}.btnTop{margin-left:8px;margin-right:8px}.btnFlexContainer{width:290px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><div style=margin-top:10px><form action=/eraseConfig enctype=multipart/form-data id=formEraseConfig method=POST></form><form action=/ enctype=multipart/form-data id=formUpdateConfig method=POST></form><form action=/onClick enctype=multipart/form-data id=formOnClick method=POST></form></div><input class="btn btnLarge btnTop"form=formUpdateConfig type=submit value="Update settings & Reboot"> <input class="btn btnLarge btnTop"form=formEraseConfig type=submit value="Erase config"><div class="flex-container animated zoomIn">)";
+static const constexpr char* const s_htmlIndexEnd = R"(</div></div></body></html>)";
+static const constexpr char* const s_htmlRedirectDelayed PROGMEM =
+  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Reloading in %redirect_seconds% seconds...</h1>)";
+static const constexpr char* const s_htmlRedirectReset PROGMEM =
+  R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=%redirect_seconds%;/ http-equiv=refresh><h1>Resetting ESP8266</h1><h2>reason<h2><p>%s</p>)";
 
 void WebServer::setup(const String& hostname) {
   m_logger.log(
@@ -25,6 +27,7 @@ void WebServer::setup(const String& hostname) {
 
   if (!containerSetupDone()) {
     m_logger.log(yal::Level::ERROR, "Failed to setup webinterface. reset esp!");
+    EspClass::reset();
   }
 
   m_hostname = hostname;
@@ -43,6 +46,9 @@ void WebServer::setup(const String& hostname) {
     HTTP_POST,
     std::bind(&WebServer::eraseConfig, this, std::placeholders::_1));
 
+  m_asyncWebServer.on(
+    "/onClick", HTTP_POST, std::bind(&WebServer::onClick, this, std::placeholders::_1));
+
   m_asyncWebServer.onNotFound(
     std::bind(&WebServer::onNotFound, this, std::placeholders::_1));
 
@@ -52,34 +58,51 @@ void WebServer::setup(const String& hostname) {
     }
   });
 
-  static constexpr const char* updatePath = "/update";
-  m_asyncWebServer.on(updatePath, HTTP_GET, [](AsyncWebServerRequest* request) {
-    request->send(HTTP_DENIED, CONTENT_TYPE_HTML, "403 Access denied");
+  m_asyncWebServer.on(rootPath, HTTP_GET, [this](AsyncWebServerRequest* request) {
+    if (!isCaptivePortal(request)) {
+      rootHandleGet(request);
+    }
   });
 
   m_asyncWebServer.on(
-    updatePath,
-    HTTP_POST,
-    std::bind(&WebServer::updateHandlePost, this, std::placeholders::_1),
-    std::bind(
-      &WebServer::updateHandleUpload,
-      this,
-      std::placeholders::_1,
-      std::placeholders::_2,
-      std::placeholders::_3,
-      std::placeholders::_4,
-      std::placeholders::_5,
-      std::placeholders::_6));
+    s_redirectDelayedURL, HTTP_GET, [this](AsyncWebServerRequest* request) {
+      request->send_P(
+        HTTP_OK,
+        CONTENT_TYPE_HTML,
+        s_htmlRedirectDelayed,
+        [&](const String& templateString) { return String(m_redirectDelay.count()); });
+    });
 
   m_asyncWebServer.begin();
   m_logger.log(yal::Level::DEBUG, "Web server ready");
 }
 
 void WebServer::addContainer(Container&& container) {
-  m_container.emplace_back(container);
+  m_container.push_back(container);
+}
+
+void WebServer::redirectBackToHome(
+  AsyncWebServerRequest* request,
+  const std::chrono::seconds& delay) {
+  if (delay > 0s) {
+    m_redirectDelay = delay;
+    request->redirect(s_redirectDelayedURL);
+  } else {
+    request->redirect("/");
+  }
 }
 
 bool WebServer::containerSetupDone() {
+  for (auto& container : m_container) {
+    for (auto& any : container.elements()) {
+      Element* element = anyToElement(any);
+      if (element != nullptr) {
+        m_elementMap[element->configName()] = &any;
+        m_logger.log(yal::Level::DEBUG, "Adding % to map", element->configName().c_str());
+      }
+    }
+  }
+
   const auto checkResult = checkAndWriteHTML(false);
   if (checkResult == WriteAndCheckResult::SUCCESS) {
     return true;
@@ -126,8 +149,7 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
     offset += startLen;
   }
 
-  // todo support lists
-  for (const auto& container : m_container) {
+  for (auto& container : m_container) {
     std::stringstream ss;
     static const constexpr auto containerStart PROGMEM =
       R"(<div class="flex-card"><div class="hero">)";
@@ -143,33 +165,37 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
 
     ss << containerClass;
 
-    for (const auto& element : container.elements()) {
-      const auto& strId = element.configName();
+    for (auto& any : container.elements()) {
+      auto* element = anyToElement(any);
+      if (nullptr == element) {
+        m_logger.log(yal::Level::FATAL, "failed to cast any to element!");
+        continue;
+      }
 
-      // todo catch std::any cast errors
-      // todo support lists
-      String elementValue = "%" + element.configName() + "%";
-      String elementHTMLType;
-      switch (element.type()) {
+      String elementValue = "%" + element->configName() + "%";
+      String text;
+
+      switch (element->type()) {
+        case ElementType::BUTTON:
+          makeButton(element, ss);
+          break;
+        case ElementType::LIST:
+          makeSelect(element, elementValue, "text", ss);
+          continue;
         case ElementType::STRING:
-          elementHTMLType = "text";
+          makeInput(element, elementValue, "text", ss);
           break;
         case ElementType::PASSWORD:
-          elementHTMLType = "password";
+          makeInput(element, elementValue, "password", ss);
           break;
         case ElementType::INT:
         case ElementType::DOUBLE:
-          elementHTMLType = "number";
+          makeInput(element, elementValue, "number", ss);
+          break;
+        case ElementType::UPLOAD:
+          makeUpload(element, ss);
           break;
       }
-
-      const auto labelAndInput = "<label for=\"" + strId + "\">" + element.label() +
-                                 "</label>"
-                                 "<input id=\"" +
-                                 strId + R"(" class="inputLarge")" + "name=\"" + strId +
-                                 +"\" value=\"" + elementValue + "\" " + "type=\"" +
-                                 elementHTMLType + "\"</><br/>";
-      ss << labelAndInput.c_str();
     }
 
     static const auto containerEnd PROGMEM = "</div></div>";
@@ -208,6 +234,109 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
   }
 
   return WriteAndCheckResult::SUCCESS;
+}
+
+void WebServer::makeInput(
+  const Element* element,
+  const String& elementValue,
+  const String& inputType,
+  std::stringstream& ss) {
+  const auto& id = element->configName().c_str();
+  // clang-format off
+  ss <<
+    "<label for=\"" << id << "\">" << element->label().c_str() << "</label>"
+    "<input id=\"" << id
+      << R"(" class="inputLarge")"
+      << "name=\"" << id << "\" "
+      << "value=\"" << elementValue.c_str() << "\" "
+      << "type=\"" << inputType.c_str() << "\" "
+      << "form=\"formUpdateConfig\" "
+      << "/>"
+  "<br/>";
+  // clang-format on
+}
+
+void WebServer::makeSelect(
+  const Element* element,
+  const String& elementValue,
+  const String& inputType,
+  std::stringstream& ss) {
+  const auto& id = element->configName().c_str();
+  const auto listId = (id + m_listSuffix);
+  // clang-format off
+  ss <<
+    "<label for=\"" << id << "\">" << element->label().c_str() << "</label>"
+    "<input id=\"" << id
+      << R"(" class="inputLarge")"
+      << "name=\"" << id << "\" "
+      << "value=\"" << elementValue.c_str() << "\" "
+      << "type=\"" << inputType.c_str() << "\" "
+      << "list=\"" << listId.c_str() << "\" "
+      << "form=\"formUpdateConfig\" "
+      << ">"
+    << "<datalist id=\"" << listId.c_str() << "\">"
+    << "%" << listId.c_str() << "%"
+    << "</datalist>"
+    << "</input>"
+    << "<br/>";
+  // clang-format on
+}
+
+void WebServer::makeButton(const Element* element, std::stringstream& ss) {
+  const auto& id = element->configName().c_str();
+  // clang-format off
+  ss <<
+    "<label for=\"" << id << "\"></label>"
+    "<input id=\"" << id
+      << R"(" class="btn btnFlexContainer")"
+      << "name=\"" << id << "\" "
+      << "value=\"" << element->label().c_str() << "\" "
+      << "form=\"formOnClick\" "
+      << "type=\"submit\" "
+      << "/>"
+      << "<br/>";
+  // clang-format on
+}
+
+void WebServer::makeUpload(const Element* element, std::stringstream& ss) {
+  const auto& id = element->configName().c_str();
+  const auto& idStr = element->configName();
+  const auto& formId = element->configName() + "__form";
+  const auto& browseId = (element->configName() + "__browse").c_str();
+  const auto* upload = findElement<UploadElement>(idStr);
+  const auto url = "/" + idStr + "__upload";
+
+  m_asyncWebServer.on(url.c_str(), HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send(HTTP_DENIED, CONTENT_TYPE_HTML, "403 Access denied");
+  });
+
+  m_asyncWebServer.on(
+    url.c_str(),
+    HTTP_POST,
+    [upload](AsyncWebServerRequest* request) { upload->onPost(request); },
+    [upload](
+      AsyncWebServerRequest* request,
+      const String& filename,
+      size_t index,
+      uint8_t* data,
+      size_t len,
+      bool final) { upload->onUpload(request, filename, index, data, len, final); });
+  // clang-format off
+  ss << "<form method='POST' action='"<< url.c_str()
+     << "' enctype='multipart/form-data'>"
+      << "<label for=\"" << browseId << "\">"
+        << upload->browseLabel().c_str()
+      << "</label>"
+      << "<input type='file' class=\"input inputLarge\" accept='.bin,.bin.gz' "
+        << "id=\"" << browseId << "\" "
+        << "name=\"" << browseId << "\">"
+      << "<label for=\"" << id << "\"></label>"
+      << "<input type='submit' value='Update' class=\"btn btnFlexContainer\""
+        << "id=\"" << id << "\">"
+    << "</form>"
+    << "<br>";
+
+  // clang-format on
 }
 
 bool WebServer::fileSystemAndDataChunksEqual(
@@ -281,14 +410,16 @@ bool WebServer::fileSystemWriteChunk(
   return true;
 }
 
-void WebServer::reset(
-  AsyncWebServerRequest* const request,
-  AsyncResponseStream* const response) {
+void WebServer::reset(AsyncWebServerRequest* request, const char* reason) {
+  AsyncResponseStream* response = request->beginResponseStream(CONTENT_TYPE_HTML);
+  response->printf(s_htmlRedirectReset, reason);
   response->addHeader("Connection", "close");
   request->onDisconnect([this]() {
     m_logger.log(yal::Level::WARNING, "Restarting");
     EspClass::reset();
   });
+
+  request->send(response);
 }
 
 void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
@@ -304,29 +435,44 @@ void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
     std::bind(&WebServer::templateCallback, this, std::placeholders::_1));
 }
 
-size_t WebServer::chunkedResponseCopy(
-  size_t index,
-  size_t maxLen,
-  uint8_t* dst,
-  const char* const source,
-  size_t sourceLength) {
-  const auto idxBytesLeft = sourceLength - index;
-  auto bytesCopied = std::min(maxLen, idxBytesLeft);
-  if (idxBytesLeft == 0) {
-    return 0;
+String WebServer::templateCallback(const String& templateString) {
+  String templ = templateString;
+  bool getDataList = false;
+  if (templ.endsWith(m_listSuffix)) {
+    getDataList = true;
+    templ.remove(templ.length() - m_listSuffix.length(), m_listSuffix.length());
   }
-  memcpy(dst, source + index, bytesCopied);
 
-  return bytesCopied;
+  const auto listValue = findElement<ListElement>(templ);
+  if (listValue != nullptr) {
+    return listTemplate(templ, listValue, getDataList);
+  } else {
+    const auto value = m_config.value<String>(templ);
+    m_logger.log(
+      yal::Level::DEBUG,
+      "Replacing template string '%' with %",
+      templ.c_str(),
+      value.c_str());
+    return m_config.value<String>(templ);
+  }
 }
 
-String WebServer::templateCallback(const String& templateString) {
-  auto value = m_config.value<String>(templateString);
-  m_logger.log(
-    yal::Level::DEBUG,
-    "Replacing template string '%' with %",
-    templateString.c_str(),
-    value.c_str());
+String WebServer::listTemplate(
+  const String& templ,
+  const ListElement* listValue,
+  bool getDataList) {
+  if (!getDataList) {
+    return m_config.value<String>(templ);
+  }
+
+  String value;
+  const auto& options = listValue->options();
+  m_logger.log(yal::Level::DEBUG, "List has % options", options.size());
+
+  for (const auto& option : options) {
+    m_logger.log(yal::Level::DEBUG, "Adding select option %", option.c_str());
+    value += "<option value=\"" + option + "\">" + option + "</option>";
+  }
   return value;
 }
 
@@ -351,57 +497,27 @@ void WebServer::rootHandlePost(AsyncWebServerRequest* const request) {
     "<html><head><title>200</title></head><body><h1>OK</h1></body>");
 }
 
-void WebServer::updateHandlePost(AsyncWebServerRequest* request) {
-  m_logger.log(yal::Level::INFO, "Getting ready for some new firmware");
-
-  const bool updateSuccess = !Update.hasError();
-  AsyncResponseStream* const response = request->beginResponseStream(CONTENT_TYPE_HTML);
-  response->printf(s_htmlRedirect15s, updateSuccess ? "succeeded" : "failed");
-
-  if (updateSuccess) {
-    reset(request, response);
-  }
-
-  request->send(response);
-}
-
-void WebServer::updateHandleUpload(
-  AsyncWebServerRequest* request,
-  const String& filename,
-  size_t index,
-  uint8_t* data,
-  size_t len,
-  bool final) {
-  if (!index) {
-    m_logger.log(yal::Level::INFO, "Starting update with file: %", filename.c_str());
-
-    Update.runAsync(true);
-    if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
-      Update.printError(Serial);
-    }
-  }
-
-  if (!Update.hasError()) {
-    if (Update.write(data, len) != len) {
-      Update.printError(Serial);
-    }
-  }
-
-  if (final) {
-    if (Update.end(true)) {
-      m_logger.log(yal::Level::INFO, "Update success, filesize: %", index + len);
-    } else {
-      Update.printError(Serial);
-    }
-  }
-}
-
 void WebServer::eraseConfig(AsyncWebServerRequest* const request) {
   m_config.reset(true);
   request->send(
     HTTP_NOT_FOUND,
     CONTENT_TYPE_HTML,
     "<html><head><title>200</title></head><body><h1>OK</h1></body>");
+}
+
+void WebServer::onClick(AsyncWebServerRequest* const request) {
+  for (size_t i = 0; i < request->params(); ++i) {
+    const auto param = request->getParam(i);
+    m_logger.log(yal::Level::DEBUG, "Calling button %", param->name().c_str());
+    auto button = findElement<ButtonElement>(param->name());
+    if (button == nullptr) {
+      continue;
+    }
+    button->click();
+
+    redirectBackToHome(request, button->delay());
+    return;
+  }
 }
 
 bool WebServer::isCaptivePortal(AsyncWebServerRequest* request) {
@@ -439,7 +555,7 @@ void WebServer::onNotFound(AsyncWebServerRequest* request) {
   request->send(
     HTTP_NOT_FOUND,
     CONTENT_TYPE_HTML,
-    "<html><head><title>404</title></head><body><h1>404</h1></body>");
+    "<!DOCTYPE html><html><head><title>404</title></head><body><h1>404</h1></body>");
 }
 
 bool WebServer::isIp(const String& str) {
@@ -452,17 +568,22 @@ bool WebServer::isIp(const String& str) {
   //  return std::regex_match(str.c_str(), expr);
 }
 
-void WebServer::addWifiContainers() {
-  std::vector<esp_gui::Element> elements;
-  elements.emplace_back(
-    esp_gui::Element(esp_gui::ElementType::STRING, String("SSID"), m_cfgWifiSsid));
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::PASSWORD, String("Password"), m_cfgWifiPassword));
-  elements.emplace_back(esp_gui::Element(
-    esp_gui::ElementType::STRING, String("Hostname"), m_cfgWifiHostname));
-  esp_gui::Container wifiSettings("WIFI Settings", std::move(elements));
+Element* WebServer::anyToElement(std::any& any) {
+  if (std::type_index(typeid(Element)) == any.type()) {
+    return std::any_cast<Element>(&any);
+  } else if (std::type_index(typeid(ListElement)) == any.type()) {
+    return std::any_cast<ListElement>(&any);
+  } else if (std::type_index(typeid(ButtonElement)) == any.type()) {
+    return std::any_cast<ButtonElement>(&any);
+  } else if (std::type_index(typeid(InputElement)) == any.type()) {
+    return std::any_cast<InputElement>(&any);
+  } else if (std::type_index(typeid(UploadElement)) == any.type()) {
+    return std::any_cast<UploadElement>(&any);
+  }
 
-  addContainer(std::move(wifiSettings));
+  m_logger.log(yal::Level::ERROR, "failed to cast %", any.type().name());
+
+  return nullptr;
 }
 
 }  // namespace esp_gui
