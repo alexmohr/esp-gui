@@ -7,16 +7,16 @@
 #include <LittleFS.h>
 #include <esp-gui/Util.hpp>
 #include <esp-gui/WebServer.hpp>
-#include <md5.h>
 #include <functional>
 #include <string>
 
 namespace esp_gui {
 
-static const constexpr char* const s_indexDataStart =
-  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin:.25em;font-size:1rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.input-group-text{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin-left:-.5em;z-index:-1;font-size:1rem;box-shadow:0 10px 20px -20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1.15rem;display:inline-block;width:85px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:262px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><form action=/eraseConfig enctype=multipart/form-data method=POST style=margin-left:20px;margin-top:20px;margin-bottom:-20px><input class="btn btnLarge"value="Erase config"type=submit></form><form action=/ enctype=multipart/form-data method=POST style=margin:20px><input class="btn btnLarge"value="Update settings & Reboot"type=submit><div class="flex-container animated zoomIn"><div class=flex-card><div class=hero><h3>WiFi Configuration</h3></div><div class=content><label for=wifi_ssid>SSID</label><input class=inputLarge value=%wifi_ssid% id=wifi_ssid name=wifi_ssid list=wifi_networklist><datalist id=wifi_networklist>%wifi_networklist%</datalist><br><label for=wifi_password>Password</label><input class=inputLarge value=%wifi_password% id=wifi_password name=wifi_password type=password><br><label for=wifi_hostname>Hostname</label><input class=inputLarge value=%wifi_hostname% id=wifi_hostname name=wifi_hostname></div></div>)";
+static const constexpr char* const s_htmlIndexStart PROGMEM =
+  R"(<!DOCTYPE html><html lang=en><title>%page_title%</title><meta charset=utf-8><meta content="width=device-width,user-scalable=no"name=viewport><style>html{background-color:#212121}p{font-weight:500}a:visited{text-decoration:none;color:#E0E0E0}a{text-decoration:none}*{margin:0;padding:0;color:#E0E0E0;overflow-x:hidden}body{font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#4a4a4a}input,select{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin:.25em;font-size:1rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.input-group-text{width:120px;background:#121212;border:none;border-radius:4px;padding:1rem;height:50px;margin-left:-.5em;z-index:-1;font-size:1rem;box-shadow:0 10px 20px -20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.inputMedium{width:155px}.inputSmall{width:85px}.inputLarge{width:260px}label{margin-right:1em;font-size:1.15rem;display:inline-block;width:85px}.break{flex-basis:100%%;height:0}.btn{background:#303F9F;color:#EEE;border-radius:4px}.btnLarge{width:262px}.flex-container{display:flex;flex-wrap:wrap}.flex-nav{flex-grow:1;flex-shrink:0;background:#303F9F;height:3rem}.featured{background:#3F51B5;color:#fff;padding:1em}.featured h1{font-size:2rem;margin-bottom:1rem;font-weight:300}.flex-card{overflow-y:hidden;flex:1;flex-shrink:0;flex-basis:400px;display:flex;flex-wrap:wrap;background:#212121;margin:.5rem;box-shadow:0 10px 20px rgba(0,0,0,.19),0 6px 6px rgba(0,0,0,.23)}.flex-card div{flex:100%%}.fit-content{height:fit-content}.flex-card .hero{position:relative;color:#fff;height:70px;background:linear-gradient(rgba(0,0,0,.5),rgba(0,0,0,.5)) no-repeat;background-size:cover}.flex-card .hero h3{position:absolute;bottom:15px;left:0;padding:0 1rem}.content{min-height:100%%;min-width:400px}.flex-card .content{color:#BDBDBD;padding:1.5rem 1rem 2rem 1rem}</style><div class=flex-container><div class=flex-nav></div></div><div class=featured><h1><a href=/ >%page_title%</a></h1></div><div><form action=/eraseConfig enctype=multipart/form-data method=POST style=margin-left:20px;margin-top:20px;margin-bottom:-20px><input class="btn btnLarge"value="Erase config"type=submit></form><form action=/ enctype=multipart/form-data method=POST style=margin:20px><input class="btn btnLarge"value="Update settings & Reboot"type=submit><div class="flex-container animated zoomIn"><div class=flex-card><div class=hero><h3>WiFi Configuration</h3></div><div class=content><label for=wifi_ssid>SSID</label><input class=inputLarge value=%wifi_ssid% id=wifi_ssid name=wifi_ssid list=wifi_networklist><datalist id=wifi_networklist>%wifi_networklist%</datalist><br><label for=wifi_password>Password</label><input class=inputLarge value=%wifi_password% id=wifi_password name=wifi_password type=password><br><label for=wifi_hostname>Hostname</label><input class=inputLarge value=%wifi_hostname% id=wifi_hostname name=wifi_hostname></div></div>)";
+static const constexpr char* const s_htmlIndexEnd = R"(</div></form><div class="animated flex-container zoomIn"><div class="animated flex-container zoomIn"><div class=flex-card><div class=hero><h3>System</h3></div><div class=content><h3>Firmware update</h3><form action=/update enctype=multipart/form-data method=POST><input class="input inputLarge"type=file accept=.bin,.bin.gz name=firmware> <input class=btn type=submit value=Update></form></body><html>)";
+static const constexpr char* const s_htmlRedirect15s PROGMEM = R"(<html lang=en><style>html{background-color:#424242;font-size:16px;font-family:Roboto,sans-serif;font-weight:300;color:#fefefe;text-align:center}</style><meta content=15;/ http-equiv=refresh><h1>Operation %s, reloading in 15 seconds...</h1>)";
 
-static const constexpr char* const s_indexDataEnd = R"(</div></form></body></html>)";
 
 void WebServer::setup(const String& hostname) {
   m_logger.log(
@@ -47,6 +47,23 @@ void WebServer::setup(const String& hostname) {
     }
   });
 
+  static constexpr const char* updatePath = "/update";
+  m_asyncWebServer.on(updatePath, HTTP_GET, [](AsyncWebServerRequest* request) {
+    request->send(HTTP_DENIED, CONTENT_TYPE_HTML, "403 Access denied");
+  });
+
+  m_asyncWebServer.on(
+    updatePath,
+    HTTP_POST,
+    std::bind(&WebServer::updateHandlePost, this, std::placeholders::_1),
+    std::bind(&WebServer::updateHandleUpload, this,
+      std::placeholders::_1,
+      std::placeholders::_2,
+      std::placeholders::_3,
+      std::placeholders::_4,
+      std::placeholders::_5,
+      std::placeholders::_6));
+  
   m_asyncWebServer.begin();
   m_logger.log(yal::Level::DEBUG, "Web server ready");
 }
@@ -54,24 +71,6 @@ void WebServer::setup(const String& hostname) {
 void WebServer::addContainer(Container&& container) {
   m_container.emplace_back(container);
 }
-
-// void WebServer::addToContainerData(const char* const data) {
-//   const auto len = std::strlen(data);
-//   const auto remainingSize = std::min(m_containerData.size() - m_containerDataUsed,
-//   len);
-//
-//   memcpy(m_containerData.data() + m_containerDataUsed, data, remainingSize);
-//   m_containerDataUsed += remainingSize;
-//
-//   m_logger.log(
-//     yal::Level::INFO,
-//     "Container RAM usage: % of % bytes (%)",
-//     m_containerDataUsed,
-//     m_containerData.size(),
-//     (static_cast<float>(m_containerDataUsed) /
-//      static_cast<float>(m_containerData.size())) *
-//       100.0F);
-// }
 
 bool WebServer::containerSetupDone() {
   const auto checkResult = checkAndWriteHTML(false);
@@ -87,29 +86,32 @@ bool WebServer::containerSetupDone() {
 WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
   unsigned int offset = 0U;
 
-  const auto checkOrWrite =
-    [&](unsigned int offset, const uint8_t* data, int size, bool clearFile = false) {
-      if (writeFS) {
-        m_logger.log(
-          yal::Level::DEBUG, "writing % bytes to config at offset %", size, offset);
-        if (!fileSystemWriteChunk(offset, data, size, clearFile)) {
-          return WriteAndCheckResult::WRITE_FAILED;
-        }
-      } else {
-        m_logger.log(
-          yal::Level::DEBUG, "validating % bytes of config at offset %", size, offset);
-        if (!fileSystemAndDataChunksEqual(offset, data, size)) {
-          return WriteAndCheckResult::CHECKSUM_MISSMATCH;
-        }
+  const auto checkOrWrite = [&](
+                              const unsigned int offset,
+                              const uint8_t* const data,
+                              const int size,
+                              const bool clearFile = false) {
+    if (writeFS) {
+      m_logger.log(
+        yal::Level::DEBUG, "writing % bytes to config at offset %", size, offset);
+      if (!fileSystemWriteChunk(offset, data, size, clearFile)) {
+        return WriteAndCheckResult::WRITE_FAILED;
       }
+    } else {
+      m_logger.log(
+        yal::Level::DEBUG, "validating % bytes of config at offset %", size, offset);
+      if (!fileSystemAndDataChunksEqual(offset, data, size)) {
+        return WriteAndCheckResult::CHECKSUM_MISSMATCH;
+      }
+    }
 
-      return WriteAndCheckResult::SUCCESS;
-    };
+    return WriteAndCheckResult::SUCCESS;
+  };
 
   {
-    const auto startLen = std::strlen(s_indexDataStart);
+    const auto startLen = std::strlen(s_htmlIndexStart);
     const auto result = checkOrWrite(
-      offset, reinterpret_cast<const uint8_t*>(s_indexDataStart), startLen, true);
+      offset, reinterpret_cast<const uint8_t*>(s_htmlIndexStart), startLen, true);
     if (result != WriteAndCheckResult::SUCCESS) {
       return result;
     }
@@ -180,9 +182,9 @@ WebServer::WriteAndCheckResult WebServer::checkAndWriteHTML(bool writeFS) {
   }
 
   {
-    const auto endLen = std::strlen(s_indexDataEnd);
+    const auto endLen = std::strlen(s_htmlIndexEnd);
     const auto result =
-      checkOrWrite(offset, reinterpret_cast<const uint8_t*>(s_indexDataEnd), endLen);
+      checkOrWrite(offset, reinterpret_cast<const uint8_t*>(s_htmlIndexEnd), endLen);
     if (result != WriteAndCheckResult::SUCCESS) {
       return result;
     }
@@ -275,12 +277,11 @@ bool WebServer::fileSystemWriteChunk(
 void WebServer::reset(
   AsyncWebServerRequest* const request,
   AsyncResponseStream* const response) {
-  //  response->addHeader("Connection", "close");
-  //  request->onDisconnect([this]() {
-  //    m_logger.log(yal::Level::WARNING, "Restarting");
-  //    EspClass::reset();
-  //  });
-  // todo fix me
+    response->addHeader("Connection", "close");
+    request->onDisconnect([this]() {
+      m_logger.log(yal::Level::WARNING, "Restarting");
+      EspClass::reset();
+    });
 }
 
 void WebServer::rootHandleGet(AsyncWebServerRequest* const request) {
@@ -341,6 +342,45 @@ void WebServer::rootHandlePost(AsyncWebServerRequest* const request) {
     HTTP_OK,
     CONTENT_TYPE_HTML,
     "<html><head><title>200</title></head><body><h1>OK</h1></body>");
+}
+
+void WebServer::updateHandlePost(AsyncWebServerRequest* request) {
+  m_logger.log(yal::Level::INFO, "Getting ready for some new firmware");
+
+  const bool updateSuccess = !Update.hasError();
+  AsyncResponseStream* const response = request->beginResponseStream(CONTENT_TYPE_HTML);
+  response->printf(s_htmlRedirect15s, updateSuccess ? "succeeded" : "failed");
+
+  if (updateSuccess) {
+    reset(request, response);
+  }
+
+  request->send(response);
+}
+
+void WebServer::updateHandleUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+  if (!index) {
+    m_logger.log(yal::Level::INFO, "Starting update with file: %", filename.c_str());
+
+    Update.runAsync(true);
+    if (!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)) {
+      Update.printError(Serial);
+    }
+  }
+
+  if (!Update.hasError()) {
+    if (Update.write(data, len) != len) {
+      Update.printError(Serial);
+    }
+  }
+
+  if (final) {
+    if (Update.end(true)) {
+      m_logger.log(yal::Level::INFO, "Update success, filesize: %", index + len);
+    } else {
+      Update.printError(Serial);
+    }
+  }
 }
 
 void WebServer::eraseConfig(AsyncWebServerRequest* const request) {

@@ -20,8 +20,8 @@ enum class ElementType { STRING, STRING_PASSWORD, INT, DOUBLE };
 
 class Element {
  public:
-  Element(ElementType type, String label, String configName) :
-      m_type(type), m_label(std::move(label)), m_configName(std::move(configName)) {
+  Element(ElementType type, String label, String configName, bool isReadOnly = false) :
+      m_type(type), m_label(std::move(label)), m_configName(std::move(configName)), m_readOnly(isReadOnly) {
   }
 
   [[nodiscard]] const String& label() const {
@@ -36,10 +36,15 @@ class Element {
     return m_type;
   }
 
+  [[nodiscard]] bool readOnly() const {
+    return m_readOnly;
+  }
+
  private:
   const ElementType m_type;
   const String m_label;
   const String m_configName;
+  const bool m_readOnly;
 };
 
 class Container {
@@ -92,7 +97,6 @@ class WebServer {
 
   std::vector<Container> m_container;
   size_t m_containerDataUsed = 0U;
-  // std::array<char, 2048> m_containerData;
 
   const String m_htmlIndex = "/index.html";
 
@@ -107,6 +111,8 @@ class WebServer {
   // void addToContainerData(const char* const data);
   void rootHandleGet(AsyncWebServerRequest* request);
   void rootHandlePost(AsyncWebServerRequest* request);
+  void updateHandlePost(AsyncWebServerRequest* request);
+  void updateHandleUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
   void eraseConfig(AsyncWebServerRequest* request);
   [[nodiscard]] String templateCallback(const String& templateString);
 
